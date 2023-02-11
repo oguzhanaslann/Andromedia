@@ -1,7 +1,6 @@
 package com.example.andromedia.ui
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -52,18 +51,9 @@ fun ImageEditView() {
     var contrast by remember { mutableStateOf(1f) }
     var blur by remember { mutableStateOf(0f) }
 
-    LaunchedEffect(brightness, contrast, blur) {
-        Log.e(
-            "TAG",
-            "ImageEditView: brightness: $brightness, contrast: $contrast, blur: $blur"
-        )
-    }
-
-
     BackHandler(editPanel != null) {
         editPanel = null
     }
-
 
     Surface(
         modifier = Modifier
@@ -200,47 +190,70 @@ fun ImageEditView() {
 
 
             AnimatedVisibility(visible = editPanel != null) {
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                ) {
-                    Row {
-                        Text("Brightness")
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text("${(brightness / 180f * 100f).toInt()}%")
-                    }
-                    Slider(
-                        value = brightness,
-                        onValueChange = { brightness = it },
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        valueRange = brightnessRange
+                when (editPanel) {
+                    EditPanel.FILTER -> AdjustImageSettingsView(
+                        brightness = brightness,
+                        onBrightnessChange = { brightness = it },
+                        contrast = contrast,
+                        onContrastChange = { contrast = it },
+                        blur = blur,
+                        onBlurChange = { blur = it }
                     )
-                    Row {
-                        Text("Contrast")
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text("${(contrast / 10f * 100f).toInt()}%")
-                    }
-                    Slider(
-                        value = contrast,
-                        onValueChange = { contrast = it },
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        valueRange = contrastRange
-                    )
-                    Row {
-                        Text("Blur")
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text("${(blur / 25f * 100f).toInt()  }%")
-                    }
-                    Slider(
-                        value = blur,
-                        onValueChange = { blur = it },
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        valueRange = blurRange
-                    )
+                    EditPanel.ADJUST -> TODO()
+                    null -> Unit
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AdjustImageSettingsView(
+    brightness: Float,
+    onBrightnessChange: (Float) -> Unit,
+    contrast: Float,
+    onContrastChange: (Float) -> Unit,
+    blur: Float,
+    onBlurChange: (Float) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
+    ) {
+        Row {
+            Text("Brightness")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("${(brightness / 180f * 100f).toInt()}%")
+        }
+        Slider(
+            value = brightness,
+            onValueChange = onBrightnessChange,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            valueRange = brightnessRange
+        )
+        Row {
+            Text("Contrast")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("${(contrast / 10f * 100f).toInt()}%")
+        }
+        Slider(
+            value = contrast,
+            onValueChange = onContrastChange,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            valueRange = contrastRange
+        )
+        Row {
+            Text("Blur")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("${(blur / 25f * 100f).toInt()}%")
+        }
+        Slider(
+            value = blur,
+            onValueChange = onBlurChange,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            valueRange = blurRange
+        )
     }
 }
 
