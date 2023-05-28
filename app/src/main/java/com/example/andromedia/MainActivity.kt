@@ -12,12 +12,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -27,7 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
+import com.example.andromedia.ui.imageEdit.ImageEditView
+import com.example.andromedia.ui.ShapeableImage
+import com.example.andromedia.ui.colorPallette.ColorPaletteView
 import com.example.andromedia.ui.theme.AndromediaTheme
 
 const val Crop = 0
@@ -38,6 +40,15 @@ const val Inside = 4
 const val Fit = 5
 
 const val MENU = "menu"
+
+/**
+ *  there will an menu to select the options,
+ *
+ *  image edit view -> crop, rotate,color filter image.
+ *  download image -> download image from url.
+ *  color pallette api -> get color pallette from image.
+ *
+ */
 
 
 class MainActivity : ComponentActivity() {
@@ -57,7 +68,22 @@ private val pages = listOf(
         route = "trial",
         title = "Trial",
         content = { Trial() }
+    ),
+
+    Page(
+        route = "imageEdit",
+        title = "image edit",
+        content = { ImageEditView() }
+    ),
+
+    // color pallette api
+    Page(
+        route = "colorPallette",
+        title = "color pallette",
+        content = { ColorPaletteView() }
     )
+
+
 )
 
 @Composable
@@ -82,6 +108,14 @@ private fun MainView(pages: List<Page>) {
         composable("trial") {
             Trial()
         }
+
+        composable("imageEdit") {
+            ImageEditView()
+        }
+
+        composable("colorPallette") {
+            ColorPaletteView()
+        }
     }
 }
 
@@ -90,7 +124,7 @@ private fun MainView(pages: List<Page>) {
 private fun MenuView(
     modifier: Modifier = Modifier,
     pages: List<Page>,
-    onRouteClicked: (String) -> Unit = {}
+    onRouteClicked: (String) -> Unit = {},
 ) {
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
         items(pages) { page ->
@@ -120,25 +154,20 @@ private fun MenuView(
 fun Trial() {
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
         items(9) {
-            var blur by remember { mutableStateOf(7.dp) }
             Box {
-                AsyncImage(
+                ShapeableImage(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .blur(
-                            radiusX = blur,
-                            radiusY = blur
-                        )
-                        .clickable {
-                            blur = if (blur == 0.dp) 7.dp else 0.dp
-                        },
-                    model =
+                        .aspectRatio(1f),
+                    imageUrl =
                     "https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2148&q=80",
                     contentDescription = null,
                     contentScale = when {
                         it <= Fit -> getContentScale(it)
                         else -> ContentScale.Crop
+                    },
+                    loadingContent = {
+                        CircularProgressIndicator()
                     },
                     colorFilter = when {
                         it > Fit -> ColorFilter.colorMatrix(ColorMatrix(
@@ -150,12 +179,13 @@ fun Trial() {
 
                             )
                         ).apply { setToSaturation(0f) })
+
                         else -> null
                     }
                 )
 
                 Text(
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier.align(Alignment.Center),
                     text = "Type : ${getContentScaleName(it)}",
                     color = Color.White
                 )
