@@ -39,6 +39,7 @@ import androidx.core.graphics.drawable.toBitmapOrNull
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.example.andromedia.R
+import com.example.andromedia.ui.SelectImageView
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.theme.AndromediaTheme
 
@@ -366,36 +367,7 @@ fun ImageOnEditView(
     )
 }
 
-@Composable
-private fun SelectImageView(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-) {
-    Surface(
-        modifier = modifier
-            .clickable(onClick = onClick),
-        border = BorderStroke(2.dp, Color.LightGray),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_photo_camera_24),
-                    contentDescription = null,
-                )
-                Text(
-                    text = "No Image Selected",
-                )
-            }
-        }
-    }
-}
+
 
 @Preview
 @Composable
