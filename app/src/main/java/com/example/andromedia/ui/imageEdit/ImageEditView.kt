@@ -1,7 +1,6 @@
 package com.example.andromedia.ui.imageEdit
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,11 +9,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
@@ -42,7 +41,6 @@ import com.example.andromedia.R
 import com.example.andromedia.ui.SelectImageView
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.theme.AndromediaTheme
-
 
 val brightnessRange = -180f..180f
 val contrastRange = 0f..10f
@@ -139,12 +137,16 @@ fun ImageEditView() {
                     .fillMaxWidth()
                     .weight(0.8f)
                     .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp),
-                shape = MaterialTheme.shapes.medium
+                    .padding(bottom = 16.dp)
             ) {
                 when (photoUri) {
                     null -> SelectImageView(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                shape = MaterialTheme.shapes.medium,
+                                color = MaterialTheme.colorScheme.surface
+                            ),
                         onClick = {
                             photoPicker.launch(
                                 PickVisualMediaRequest(
@@ -153,6 +155,7 @@ fun ImageEditView() {
                             )
                         }
                     )
+
                     else -> ImageOnEditView(
                         modifier = Modifier.fillMaxSize(),
                         uri = photoUri!!,
@@ -161,6 +164,7 @@ fun ImageEditView() {
                         blur = blur,
                         rotation = animatedRotation,
                         colorMatrix = appliedFilter?.colorMatrix,
+                        crop = editPanel == EditPanel.CROP,
                     )
                 }
             }
@@ -174,7 +178,9 @@ fun ImageEditView() {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {
+                        editPanel = if (editPanel == EditPanel.CROP) null else EditPanel.CROP
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_crop_24),
                             contentDescription = null,
@@ -215,7 +221,7 @@ fun ImageEditView() {
                 }
             }
 
-            AnimatedVisibility(visible = editPanel != null) {
+            AnimatedVisibility(visible = editPanel != null && editPanel != EditPanel.CROP) {
                 AnimatedContent(
                     modifier = Modifier.heightIn(96.dp),
                     targetState = editPanel,
@@ -229,22 +235,37 @@ fun ImageEditView() {
                             blur = blur,
                             onBlurChange = { blur = it }
                         )
-                        EditPanel.FILTER -> Row(
+
+                        EditPanel.FILTER -> LazyRow(
                             modifier = Modifier
-                                .padding(16.dp)
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            state = rememberLazyListState()
                         ) {
-                            AdjustedImageView(photoUri!!) { appliedFilter = it }
-                            AdjustedImageView(photoUri!!, grayFilter) { appliedFilter = it }
-                            AdjustedImageView(photoUri!!, yellowFilter) { appliedFilter = it }
-                            AdjustedImageView(photoUri!!, blueFilter) { appliedFilter = it }
-                            AdjustedImageView(photoUri!!, goldFilter) { appliedFilter = it }
-                            AdjustedImageView(photoUri!!, pinkFilter) { appliedFilter = it }
-                            AdjustedImageView(photoUri!!, greenFilter) { appliedFilter = it }
-                            AdjustedImageView(photoUri!!, sepiaFilter) { appliedFilter = it }
+                            items(
+                                listOf(
+                                    null,
+                                    grayFilter,
+                                    yellowFilter,
+                                    blueFilter,
+                                    goldFilter,
+                                    pinkFilter,
+                                    greenFilter,
+                                    sepiaFilter
+                                )
+                            ) {
+                                when (it) {
+                                    null -> AdjustedImageView(photoUri!!) { appliedFilter = it }
+                                    else -> AdjustedImageView(photoUri!!, it) {
+                                        appliedFilter = it
+                                    }
+                                }
+
+                            }
                         }
-                        null -> {}
+
+                        EditPanel.CROP -> Unit
+                        null -> Unit
                     }
                 }
             }
@@ -302,10 +323,6 @@ fun AdjustImageSettingsView(
     }
 }
 
-enum class EditPanel {
-    FILTER, ADJUST
-}
-
 @Composable
 fun ImageOnEditView(
     modifier: Modifier = Modifier,
@@ -315,6 +332,7 @@ fun ImageOnEditView(
     blur: Float = 0f,
     rotation: Float = 0f,
     colorMatrix: ColorMatrix? = null,
+    crop: Boolean = false,
 ) {
 
     val updatedColorMatrix = remember(
@@ -346,27 +364,29 @@ fun ImageOnEditView(
         ColorMatrix(matrix)
     }
 
-
-    LaunchedEffect(key1 = blur.dp, block = { Log.e("TAG", "ImageOnEditView: $blur") })
-
-    AsyncImage(
-        modifier = modifier
-            .rotate(rotation)
-            .blur(blur.dp),
-        model = uri,
-        contentScale = ContentScale.Crop,
-        contentDescription = null,
-        colorFilter = ColorFilter.colorMatrix(
-            updatedColorMatrix
-        ),
-        onState = {
-            if (it is AsyncImagePainter.State.Success) {
-                it.result.drawable.toBitmapOrNull()
+    Crop(
+        modifier = modifier,
+        drawGrid = crop
+    ) {
+        AsyncImage(
+            modifier = Modifier
+                .fillMaxSize()
+                .rotate(rotation)
+                .blur(blur.dp),
+            model = uri,
+            contentScale = ContentScale.Crop,
+            contentDescription = null,
+            colorFilter = ColorFilter.colorMatrix(
+                updatedColorMatrix
+            ),
+            onState = {
+                if (it is AsyncImagePainter.State.Success) {
+                    it.result.drawable.toBitmapOrNull()
+                }
             }
-        }
-    )
+        )
+    }
 }
-
 
 
 @Preview
