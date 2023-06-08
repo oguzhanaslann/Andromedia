@@ -1,6 +1,7 @@
 package com.example.andromedia.ui.imageEdit
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,6 +11,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
@@ -35,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmapOrNull
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.example.andromedia.R
@@ -48,7 +52,9 @@ val blurRange = 0f..10f
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ImageEditView() {
+fun ImageEditView(
+    imageEditViewModel: ImageEditViewModel = viewModel(),
+) {
 
     var photoUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -72,203 +78,235 @@ fun ImageEditView() {
 
     var appliedFilter: ColorFilterModel? by remember { mutableStateOf(null) }
 
+    LaunchedEffect(appliedFilter, brightness, contrast, rotation) {
+        imageEditViewModel.applyChanges(
+            appliedFilter?.colorMatrix,
+            brightness,
+            contrast,
+            rotation
+        )
+    }
+
+    val bitmap by imageEditViewModel.bitmap.collectAsState()
+
     BackHandler(editPanelOpen) {
         editPanel = null
     }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
+    Box {
+        Surface(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.1f)
-                    .padding(top = 16.dp)
-                    .padding(horizontal = 16.dp)
-                    .heightIn(min = 48.dp),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    .fillMaxSize()
             ) {
-
-                val onBackPressedDispatcher =
-                    LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-                IconButton(onClick = { onBackPressedDispatcher?.onBackPressed() }) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowLeft,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-
-                Spacer(
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-
-            }
-
-            Spacer(
-                modifier = Modifier
-                    .height(16.dp)
-            )
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.8f)
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp)
-            ) {
-                when (photoUri) {
-                    null -> SelectImageView(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                shape = MaterialTheme.shapes.medium,
-                                color = MaterialTheme.colorScheme.surface
-                            ),
-                        onClick = {
-                            photoPicker.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                )
-                            )
-                        }
-                    )
-
-                    else -> ImageOnEditView(
-                        modifier = Modifier.fillMaxSize(),
-                        uri = photoUri!!,
-                        brightness = brightness,
-                        contrast = contrast,
-                        blur = blur,
-                        rotation = animatedRotation,
-                        colorMatrix = appliedFilter?.colorMatrix,
-                        crop = editPanel == EditPanel.CROP,
-                    )
-                }
-            }
-
-            AnimatedVisibility(visible = photoUri != null) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(0.1f)
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp)
+                        .heightIn(min = 48.dp),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    IconButton(onClick = {
-                        editPanel = if (editPanel == EditPanel.CROP) null else EditPanel.CROP
-                    }) {
+
+                    val onBackPressedDispatcher =
+                        LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+                    IconButton(onClick = { onBackPressedDispatcher?.onBackPressed() }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.baseline_crop_24),
+                            imageVector = Icons.Default.KeyboardArrowLeft,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
-                    IconButton(onClick = {
-                        rotation = (rotation - 90f) % (Float.MAX_VALUE - 90f)
-                    }) {
+                    Spacer(
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = { /*TODO*/ }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.baseline_rotate_90_degrees_ccw_24),
+                            imageVector = Icons.Default.Share,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
-                    IconButton(onClick = {
-                        editPanel = if (editPanel == EditPanel.ADJUST) null else EditPanel.ADJUST
-                    }) {
+                    IconButton(onClick = { /*TODO*/ }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.baseline_wb_sunny_24),
+                            imageVector = Icons.Default.Check,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
+                }
 
-                    IconButton(onClick = {
-                        editPanel = if (editPanel == EditPanel.FILTER) null else EditPanel.FILTER
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_auto_fix_normal_24),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onBackground
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp)
+                )
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(0.8f)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                ) {
+                    when (photoUri) {
+                        null -> SelectImageView(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    shape = MaterialTheme.shapes.medium,
+                                    color = MaterialTheme.colorScheme.surface
+                                ),
+                            onClick = {
+                                photoPicker.launch(
+                                    PickVisualMediaRequest(
+                                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                                    )
+                                )
+                            }
+                        )
+
+                        else -> ImageOnEditView(
+                            modifier = Modifier.fillMaxSize(),
+                            imageEditViewModel = imageEditViewModel,
+                            uri = photoUri!!,
+                            brightness = brightness,
+                            contrast = contrast,
+                            blur = blur,
+                            rotation = animatedRotation,
+                            colorMatrix = appliedFilter?.colorMatrix,
+                            crop = editPanel == EditPanel.CROP,
                         )
                     }
                 }
-            }
 
-            AnimatedVisibility(visible = editPanel != null && editPanel != EditPanel.CROP) {
-                AnimatedContent(
-                    modifier = Modifier.heightIn(96.dp),
-                    targetState = editPanel,
-                ) { panel ->
-                    when (editPanel) {
-                        EditPanel.ADJUST -> AdjustImageSettingsView(
-                            brightness = brightness,
-                            onBrightnessChange = { brightness = it },
-                            contrast = contrast,
-                            onContrastChange = { contrast = it },
-                            blur = blur,
-                            onBlurChange = { blur = it }
-                        )
-
-                        EditPanel.FILTER -> LazyRow(
-                            modifier = Modifier
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            state = rememberLazyListState()
-                        ) {
-                            items(
-                                listOf(
-                                    null,
-                                    grayFilter,
-                                    yellowFilter,
-                                    blueFilter,
-                                    goldFilter,
-                                    pinkFilter,
-                                    greenFilter,
-                                    sepiaFilter
-                                )
-                            ) {
-                                when (it) {
-                                    null -> AdjustedImageView(photoUri!!) { appliedFilter = it }
-                                    else -> AdjustedImageView(photoUri!!, it) {
-                                        appliedFilter = it
-                                    }
-                                }
-
-                            }
+                AnimatedVisibility(visible = photoUri != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.1f)
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        IconButton(onClick = {
+                            editPanel = if (editPanel == EditPanel.CROP) null else EditPanel.CROP
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_crop_24),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
                         }
 
-                        EditPanel.CROP -> Unit
-                        null -> Unit
+                        IconButton(onClick = {
+                            rotation = (rotation - 90f) % (Float.MAX_VALUE - 90f)
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_rotate_90_degrees_ccw_24),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+
+                        IconButton(onClick = {
+                            editPanel =
+                                if (editPanel == EditPanel.ADJUST) null else EditPanel.ADJUST
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_wb_sunny_24),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+
+
+                        IconButton(onClick = {
+                            editPanel =
+                                if (editPanel == EditPanel.FILTER) null else EditPanel.FILTER
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_auto_fix_normal_24),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    }
+                }
+
+                AnimatedVisibility(visible = editPanel != null && editPanel != EditPanel.CROP) {
+                    AnimatedContent(
+                        modifier = Modifier.heightIn(96.dp),
+                        targetState = editPanel,
+                    ) { panel ->
+                        when (editPanel) {
+                            EditPanel.ADJUST -> AdjustImageSettingsView(
+                                brightness = brightness,
+                                onBrightnessChange = { brightness = it },
+                                contrast = contrast,
+                                onContrastChange = { contrast = it },
+                                blur = blur,
+                                onBlurChange = { blur = it }
+                            )
+
+                            EditPanel.FILTER -> LazyRow(
+                                modifier = Modifier
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                state = rememberLazyListState()
+                            ) {
+                                items(
+                                    listOf(
+                                        null,
+                                        grayFilter,
+                                        yellowFilter,
+                                        blueFilter,
+                                        goldFilter,
+                                        pinkFilter,
+                                        greenFilter,
+                                        sepiaFilter
+                                    )
+                                ) {
+                                    when (it) {
+                                        null -> AdjustedImageView(photoUri!!) { appliedFilter = it }
+                                        else -> AdjustedImageView(photoUri!!, it) {
+                                            appliedFilter = it
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            EditPanel.CROP -> Unit
+                            null -> Unit
+                        }
                     }
                 }
             }
+        }
+
+        bitmap?.let {
+            AsyncImage(
+                model = it,
+                modifier = Modifier
+                    .padding(top = 96.dp, end = 32.dp)
+                    .size(128.dp)
+                    .align(Alignment.TopEnd)
+                    .border(
+                        width = 1.dp,
+                        color = Color.White,
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                contentDescription = ""
+            )
         }
     }
 }
@@ -326,6 +364,7 @@ fun AdjustImageSettingsView(
 @Composable
 fun ImageOnEditView(
     modifier: Modifier = Modifier,
+    imageEditViewModel: ImageEditViewModel,
     uri: Uri,
     brightness: Float = 0f,
     contrast: Float = 0f,
@@ -380,8 +419,9 @@ fun ImageOnEditView(
                 updatedColorMatrix
             ),
             onState = {
+                Log.e("TAG", "ImageOnEditView: $it")
                 if (it is AsyncImagePainter.State.Success) {
-                    it.result.drawable.toBitmapOrNull()
+                    imageEditViewModel.onImageLoaded(it.result.drawable.toBitmapOrNull())
                 }
             }
         )
