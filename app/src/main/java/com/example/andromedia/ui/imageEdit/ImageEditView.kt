@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -405,7 +406,13 @@ fun ImageOnEditView(
 
     Crop(
         modifier = modifier,
-        drawGrid = crop
+        drawGrid = crop,
+        cropState = rememberCropState(
+            size = Size(
+                width = 200.dp.toPx(),
+                height = 200.dp.toPx()
+            )
+        ),
     ) {
         AsyncImage(
             modifier = Modifier
