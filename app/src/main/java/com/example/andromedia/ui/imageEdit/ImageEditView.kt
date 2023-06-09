@@ -355,7 +355,10 @@ fun ImageEditView(
                                     }
 
                                     Column(
-                                        Modifier.width(96.dp),
+                                        Modifier.width(96.dp)
+                                            .clickable {
+                                                cropState.setAspectRatio(CropState.Ratio.RATIO_3_4)
+                                            },
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Surface(
@@ -369,7 +372,11 @@ fun ImageEditView(
                                     }
 
                                     Column(
-                                        Modifier.width(96.dp),
+                                        Modifier.width(96.dp)
+                                            .clickable {
+                                                cropState.setAspectRatio(CropState.Ratio.RATIO_9_16)
+                                            },
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Surface(
                                             modifier = Modifier

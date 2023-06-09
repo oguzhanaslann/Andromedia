@@ -48,7 +48,7 @@ fun Crop(
 
         content()
         AnimatedVisibility(
-            visible = drawGrid,
+            visible = true,
             modifier = Modifier
                 .size(
                     width = maxWidth,
@@ -58,7 +58,17 @@ fun Crop(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            GridView(cropState, maxWidthPx, maxHeightPx)
+            GridView(
+                cropState,
+                maxWidthPx,
+                maxHeightPx,
+                onDrawGrid = {
+                    cropState.setGridAllowedArea(
+                        width = size.width,
+                        height = size.height,
+                    )
+                }
+            )
         }
     }
 }

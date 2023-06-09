@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
@@ -20,6 +21,7 @@ internal fun GridView(
     maxWidthPx: Float,
     maxHeightPx: Float,
     lineWidth: Dp = 2.dp,
+    onDrawGrid: DrawScope.() -> Unit = {},
 ) {
     val center = remember(cropState.topLeft, cropState.size) {
         Offset(
@@ -244,6 +246,8 @@ internal fun GridView(
                 y = cropState.topLeft.y + cropState.size.height / 3 * 2
             )
         )
+
+        onDrawGrid()
     }
 }
 
