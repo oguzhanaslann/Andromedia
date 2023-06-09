@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -17,7 +18,7 @@ class CropState(
     topLeft: Offset = Offset.Zero,
     size: Size = Size.Zero,
     coroutineScope: CoroutineScope,
-    val minSize : Size,
+    val minSize: Size,
 ) {
     internal var topLeft by mutableStateOf(topLeft)
     internal var size by mutableStateOf(size)
@@ -120,57 +121,104 @@ class CropState(
         gridAllowedArea = Size(width, height)
     }
 
-    fun setAspectRatio(ratio: Ratio) {
-        val allowedArea = gridAllowedArea
-        val minSize = minSize
-        val currentSize = size
-        var currentHeight = currentSize.width
-        var currentWidth = currentSize.height
-        val nextHeight = currentSize.width / ratio.ratio
-        val isHeightBiggerThanAllowedHeight = nextHeight + topLeft.y > allowedArea.height
-        val isWidthBiggerThanAllowedWidth = currentSize.height * ratio.ratio + topLeft.x > allowedArea.width
+    inline fun widthLimitCheck(
+        targetWidth: Float,
+        topLeft: Offset,
+        allowedWidth: Float,
+        minWidth: Float,
+        onGridAreaLimitExceeded: () -> Unit,
+        onMinWidthLimitExceeded: () -> Unit,
+        onEach: () -> Unit,
+        onElse: () -> Unit = {},
+    ) {
 
+        val isWidthBiggerThanAllowedWidth = targetWidth + topLeft.x > allowedWidth
+        val isWidthLessThanMinWidth = targetWidth < minWidth
         when {
-            isHeightBiggerThanAllowedHeight -> {
-                currentHeight = allowedArea.height - topLeft.y
-                currentWidth = currentHeight * ratio.ratio
+            isWidthBiggerThanAllowedWidth -> {
+                onGridAreaLimitExceeded()
+                onEach()
             }
 
-            isWidthBiggerThanAllowedWidth -> {
-                currentWidth = allowedArea.width - topLeft.x
-                currentHeight = currentWidth / ratio.ratio
+            isWidthLessThanMinWidth -> {
+                onMinWidthLimitExceeded()
+                onEach()
             }
 
             else -> {
-                currentWidth = nextHeight
-                currentHeight = currentSize.width
+                onElse()
             }
         }
 
-
-        size = Size(currentWidth, currentHeight)
-
-
-//        val currentRatio = size.width / size.height
-//        size = if (currentRatio > ratio.ratio) {
-//            val newWidth = size.height * ratio.ratio
-//            Size(newWidth, size.height)
-//        } else {
-//            val newHeight = size.width / ratio.ratio
-//            Size(size.width, newHeight)
-//        }
-
     }
 
+    fun setAspectRatio(ratio: Ratio) {
+        val currentRatio = size.width / size.height
+        val targetRatio = ratio.value
+        if (currentRatio == targetRatio) { return }
+
+        var appliedWidth = size.width
+        var appliedHeight: Float
+
+        do {
+            val nextHeight = appliedWidth / targetRatio
+
+            val heightBiggerThanAllowedHeight = isHeightBiggerThanAllowedHeight(nextHeight)
+            val heightLessThanMinHeight = isHeightLessThanMinHeight(targetHeight = nextHeight)
+            val applyNewHeight = !heightBiggerThanAllowedHeight && !heightLessThanMinHeight
+            appliedHeight = when {
+                heightBiggerThanAllowedHeight -> gridAllowedArea.height - topLeft.y
+                heightLessThanMinHeight -> minSize.height
+                else -> nextHeight
+            }
+
+            if (applyNewHeight) { break }
+
+            appliedWidth = appliedHeight * targetRatio
+
+            val widthBiggerThanAllowedWidth = isWidthBiggerThanAllowedWidth(appliedWidth)
+            val widthLessThanMinWidth = isWidthLessThanMinWidth(targetWidth = appliedWidth)
+            val applyNewWidth = !widthBiggerThanAllowedWidth && !widthLessThanMinWidth
+
+            if (applyNewWidth) { break }
+
+            appliedWidth = when {
+                widthBiggerThanAllowedWidth -> gridAllowedArea.width - topLeft.x
+                else -> minSize.width
+            }
+
+        } while (true);
+
+        size = Size(appliedWidth, appliedHeight)
+    }
+
+    private fun isWidthBiggerThanAllowedWidth(targetWidth: Float): Boolean {
+        return targetWidth + topLeft.x > gridAllowedArea.width
+    }
+
+    private fun isWidthLessThanMinWidth(targetWidth: Float): Boolean {
+        return targetWidth < minSize.width
+    }
+
+    //isHeightBiggerThanAllowedHeight
+    private fun isHeightBiggerThanAllowedHeight(targetHeight: Float): Boolean {
+        return targetHeight + topLeft.y > gridAllowedArea.height
+    }
+
+    private fun isHeightLessThanMinHeight(targetHeight: Float): Boolean {
+        return targetHeight < minSize.height
+    }
 
     @JvmInline
-    value class Ratio private constructor(val ratio: Float) {
+    value class Ratio private constructor(
+        val value: Float,
+    ) {
         companion object {
             val RATIO_16_9 = Ratio(16f / 9f)
             val RATIO_9_16 = Ratio(9f / 16f)
             val RATIO_4_3 = Ratio(4f / 3f)
             val RATIO_3_4 = Ratio(3f / 4f)
-            val RATIO_1_1 = Ratio(1f)
+            val RATIO_1_1 = Ratio(1f / 1f)
         }
     }
 }
@@ -179,11 +227,12 @@ class CropState(
 fun rememberCropState(
     size: Size = Size.Zero,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    minSize: Size = Size(100.dp.toPx(), 100.dp.toPx()),
 ) = remember(size) {
     CropState(
         topLeft = Offset.Zero,
         size = size,
         coroutineScope = coroutineScope,
-        minSize = Size(100f, 100f)
+        minSize = minSize
     )
 }
