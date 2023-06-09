@@ -11,12 +11,13 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -46,6 +47,8 @@ import com.example.andromedia.R
 import com.example.andromedia.ui.SelectImageView
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.theme.AndromediaTheme
+import com.oguzhanaslann.cropView.CropState
+import com.oguzhanaslann.cropView.toPx
 
 val brightnessRange = -180f..180f
 val contrastRange = 0f..10f
@@ -78,6 +81,10 @@ fun ImageEditView(
     val editPanelOpen by remember(editPanel) { derivedStateOf { editPanel != null } }
 
     var appliedFilter: ColorFilterModel? by remember { mutableStateOf(null) }
+
+    val cropState = com.oguzhanaslann.cropView.rememberCropState(
+        size = Size(200.dp.toPx(), 200.dp.toPx()),
+    )
 
     LaunchedEffect(appliedFilter, brightness, contrast, rotation) {
         imageEditViewModel.applyChanges(
@@ -185,6 +192,7 @@ fun ImageEditView(
                             rotation = animatedRotation,
                             colorMatrix = appliedFilter?.colorMatrix,
                             crop = editPanel == EditPanel.CROP,
+                            cropState = cropState
                         )
                     }
                 }
@@ -243,7 +251,7 @@ fun ImageEditView(
                     }
                 }
 
-                AnimatedVisibility(visible = editPanel != null && editPanel != EditPanel.CROP) {
+                AnimatedVisibility(visible = editPanel != null) {
                     AnimatedContent(
                         modifier = Modifier.heightIn(96.dp),
                         targetState = editPanel,
@@ -286,7 +294,94 @@ fun ImageEditView(
                                 }
                             }
 
-                            EditPanel.CROP -> Unit
+                            EditPanel.CROP -> {
+                                Row(
+                                    Modifier
+                                        .horizontalScroll(rememberScrollState())
+                                        .padding(start = 16.dp),
+                                ) {
+                                    Column(
+                                        Modifier
+                                            .width(96.dp)
+                                            .clickable {
+                                                cropState.setAspectRatio(CropState.Ratio.RATIO_16_9)
+                                            },
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier
+                                                .width(48.dp)
+                                                .aspectRatio(16f / 9f),
+                                            color = Color.Gray,
+                                            content = {}
+                                        )
+                                        Text(text = "16:9")
+                                    }
+
+                                    Column(
+                                        Modifier
+                                            .width(96.dp)
+                                            .clickable {
+                                                cropState.setAspectRatio(CropState.Ratio.RATIO_4_3)
+                                            },
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier
+                                                .width(48.dp)
+                                                .aspectRatio(4f / 3f),
+                                            color = Color.Gray,
+                                            content = {}
+                                        )
+                                        Text(text = "4:3")
+                                    }
+
+                                    Column(
+                                        Modifier
+                                            .width(96.dp)
+                                            .clickable {
+                                                cropState.setAspectRatio(CropState.Ratio.RATIO_1_1)
+                                            },
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier
+                                                .width(48.dp)
+                                                .aspectRatio(1f),
+                                            color = Color.Gray,
+                                            content = {}
+                                        )
+                                        Text(text = "1:1")
+                                    }
+
+                                    Column(
+                                        Modifier.width(96.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier
+                                                .width(48.dp)
+                                                .aspectRatio(3f / 4f),
+                                            color = Color.Gray,
+                                            content = {}
+                                        )
+                                        Text(text = "3:4")
+                                    }
+
+                                    Column(
+                                        Modifier.width(96.dp),
+                                    ) {
+                                        Surface(
+                                            modifier = Modifier
+                                                .width(48.dp)
+                                                .aspectRatio(9f / 16f),
+                                            color = Color.Gray,
+                                            content = {}
+                                        )
+                                        Text(text = "9:16")
+                                    }
+                                }
+                            }
                             null -> Unit
                         }
                     }
@@ -294,21 +389,21 @@ fun ImageEditView(
             }
         }
 
-        bitmap?.let {
-            AsyncImage(
-                model = it,
-                modifier = Modifier
-                    .padding(top = 96.dp, end = 32.dp)
-                    .size(128.dp)
-                    .align(Alignment.TopEnd)
-                    .border(
-                        width = 1.dp,
-                        color = Color.White,
-                        shape = RoundedCornerShape(16.dp)
-                    ),
-                contentDescription = ""
-            )
-        }
+//        bitmap?.let {
+//            AsyncImage(
+//                model = it,
+//                modifier = Modifier
+//                    .padding(top = 96.dp, end = 32.dp)
+//                    .size(128.dp)
+//                    .align(Alignment.TopEnd)
+//                    .border(
+//                        width = 1.dp,
+//                        color = Color.White,
+//                        shape = RoundedCornerShape(16.dp)
+//                    ),
+//                contentDescription = ""
+//            )
+//        }
     }
 }
 
@@ -373,6 +468,7 @@ fun ImageOnEditView(
     rotation: Float = 0f,
     colorMatrix: ColorMatrix? = null,
     crop: Boolean = false,
+    cropState : com.oguzhanaslann.cropView.CropState = com.oguzhanaslann.cropView.rememberCropState(),
 ) {
 
     val updatedColorMatrix = remember(
@@ -404,15 +500,10 @@ fun ImageOnEditView(
         ColorMatrix(matrix)
     }
 
-    Crop(
+    com.oguzhanaslann.cropView.Crop(
         modifier = modifier,
         drawGrid = crop,
-        cropState = rememberCropState(
-            size = Size(
-                width = 200.dp.toPx(),
-                height = 200.dp.toPx()
-            )
-        ),
+        cropState = cropState,
     ) {
         AsyncImage(
             modifier = Modifier
