@@ -12,14 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-
 
 @Composable
 fun Crop(
@@ -32,23 +29,21 @@ fun Crop(
         val maxWidthPx = maxWidth.toPx()
         val maxHeightPx = maxHeight.toPx()
 
-
         LaunchedEffect(maxWidthPx, maxHeightPx) {
             when {
                 cropState.size == Size.Zero -> {
-                    cropState.size = Size(maxWidthPx, maxHeightPx)
+                    cropState.setSize(maxWidthPx, maxHeightPx)
                 }
 
                 cropState.size.width > maxWidthPx || cropState.size.height > maxHeightPx -> {
-                    cropState.size = Size(maxWidthPx, maxHeightPx)
+                    cropState.setSize(maxWidthPx, maxHeightPx)
                 }
             }
         }
 
-
         content()
         AnimatedVisibility(
-            visible = true,
+            visible = drawGrid,
             modifier = Modifier
                 .size(
                     width = maxWidth,
@@ -72,7 +67,6 @@ fun Crop(
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

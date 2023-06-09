@@ -11,6 +11,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -47,7 +48,9 @@ import com.example.andromedia.R
 import com.example.andromedia.ui.SelectImageView
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.theme.AndromediaTheme
-import com.oguzhanaslann.cropView.CropState
+import com.oguzhanaslann.cropView.Crop
+import com.oguzhanaslann.cropView.Ratio
+import com.oguzhanaslann.cropView.rememberCropState
 import com.oguzhanaslann.cropView.toPx
 
 val brightnessRange = -180f..180f
@@ -82,18 +85,9 @@ fun ImageEditView(
 
     var appliedFilter: ColorFilterModel? by remember { mutableStateOf(null) }
 
-    val cropState = com.oguzhanaslann.cropView.rememberCropState(
+    val cropState = rememberCropState(
         size = Size(200.dp.toPx(), 200.dp.toPx()),
     )
-
-    LaunchedEffect(appliedFilter, brightness, contrast, rotation) {
-        imageEditViewModel.applyChanges(
-            appliedFilter?.colorMatrix,
-            brightness,
-            contrast,
-            rotation
-        )
-    }
 
     val bitmap by imageEditViewModel.bitmap.collectAsState()
 
@@ -135,7 +129,7 @@ fun ImageEditView(
                     Spacer(
                         modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = {}) {
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = null,
@@ -143,7 +137,17 @@ fun ImageEditView(
                         )
                     }
 
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(
+                        onClick = {
+                            imageEditViewModel.applyChanges(
+                                appliedFilter?.colorMatrix,
+                                brightness,
+                                contrast,
+                                rotation,
+                                cropTopLeft = cropState.topLeft.x to cropState.topLeft.y,
+                                cropSize = cropState.size.width to cropState.size.height,
+                            )
+                        }) {
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
@@ -304,7 +308,7 @@ fun ImageEditView(
                                         Modifier
                                             .width(96.dp)
                                             .clickable {
-                                                cropState.setAspectRatio(CropState.Ratio.RATIO_16_9)
+                                                cropState.setAspectRatio(Ratio.RATIO_16_9)
                                             },
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
@@ -322,7 +326,7 @@ fun ImageEditView(
                                         Modifier
                                             .width(96.dp)
                                             .clickable {
-                                                cropState.setAspectRatio(CropState.Ratio.RATIO_4_3)
+                                                cropState.setAspectRatio(Ratio.RATIO_4_3)
                                             },
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
@@ -340,7 +344,7 @@ fun ImageEditView(
                                         Modifier
                                             .width(96.dp)
                                             .clickable {
-                                                cropState.setAspectRatio(CropState.Ratio.RATIO_1_1)
+                                                cropState.setAspectRatio(Ratio.RATIO_1_1)
                                             },
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
@@ -355,9 +359,10 @@ fun ImageEditView(
                                     }
 
                                     Column(
-                                        Modifier.width(96.dp)
+                                        Modifier
+                                            .width(96.dp)
                                             .clickable {
-                                                cropState.setAspectRatio(CropState.Ratio.RATIO_3_4)
+                                                cropState.setAspectRatio(Ratio.RATIO_3_4)
                                             },
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
@@ -372,9 +377,10 @@ fun ImageEditView(
                                     }
 
                                     Column(
-                                        Modifier.width(96.dp)
+                                        Modifier
+                                            .width(96.dp)
                                             .clickable {
-                                                cropState.setAspectRatio(CropState.Ratio.RATIO_9_16)
+                                                cropState.setAspectRatio(Ratio.RATIO_9_16)
                                             },
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
@@ -389,6 +395,7 @@ fun ImageEditView(
                                     }
                                 }
                             }
+
                             null -> Unit
                         }
                     }
@@ -396,21 +403,21 @@ fun ImageEditView(
             }
         }
 
-//        bitmap?.let {
-//            AsyncImage(
-//                model = it,
-//                modifier = Modifier
-//                    .padding(top = 96.dp, end = 32.dp)
-//                    .size(128.dp)
-//                    .align(Alignment.TopEnd)
-//                    .border(
-//                        width = 1.dp,
-//                        color = Color.White,
-//                        shape = RoundedCornerShape(16.dp)
-//                    ),
-//                contentDescription = ""
-//            )
-//        }
+        bitmap?.let {
+            AsyncImage(
+                model = it,
+                modifier = Modifier
+                    .padding(top = 96.dp, end = 32.dp)
+                    .size(128.dp)
+                    .align(Alignment.TopEnd)
+                    .border(
+                        width = 1.dp,
+                        color = Color.White,
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                contentDescription = ""
+            )
+        }
     }
 }
 
@@ -475,7 +482,7 @@ fun ImageOnEditView(
     rotation: Float = 0f,
     colorMatrix: ColorMatrix? = null,
     crop: Boolean = false,
-    cropState : com.oguzhanaslann.cropView.CropState = com.oguzhanaslann.cropView.rememberCropState(),
+    cropState: com.oguzhanaslann.cropView.CropState = com.oguzhanaslann.cropView.rememberCropState(),
 ) {
 
     val updatedColorMatrix = remember(
@@ -507,7 +514,7 @@ fun ImageOnEditView(
         ColorMatrix(matrix)
     }
 
-    com.oguzhanaslann.cropView.Crop(
+    Crop(
         modifier = modifier,
         drawGrid = crop,
         cropState = cropState,

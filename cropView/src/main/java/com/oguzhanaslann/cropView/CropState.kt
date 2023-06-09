@@ -20,8 +20,11 @@ class CropState(
     coroutineScope: CoroutineScope,
     val minSize: Size,
 ) {
-    internal var topLeft by mutableStateOf(topLeft)
-    internal var size by mutableStateOf(size)
+    private val _topLeft = mutableStateOf(topLeft)
+    val topLeft by _topLeft
+
+    private val _size = mutableStateOf(size)
+    val size by _size
 
 
     private var gridAllowedArea by mutableStateOf(size)
@@ -40,8 +43,8 @@ class CropState(
     ) {
         val allowedWidth = allowedArea.width
         val allowedHeight = allowedArea.height
-        this@CropState.topLeft = topLeftInAllowedArea(topLeft, allowedWidth, allowedHeight)
-        this@CropState.size = sizeInLimits(size, allowedWidth, allowedHeight)
+        _topLeft.value = topLeftInAllowedArea(topLeft, allowedWidth, allowedHeight)
+        _size.value = sizeInLimits(size, allowedWidth, allowedHeight)
     }
 
     private fun topLeftInAllowedArea(
@@ -104,8 +107,7 @@ class CropState(
                 allowedWidth = gridAllowedArea.width,
                 allowedHeight = gridAllowedArea.height
             )
-        topLeft = newTopLeft
-
+        _topLeft.value = newTopLeft
     }
 
     internal fun setSize(width: Float, height: Float) {
@@ -114,48 +116,19 @@ class CropState(
             allowedWidth = gridAllowedArea.width,
             allowedHeight = gridAllowedArea.height
         )
-        size = newSize
+        _size.value = newSize
     }
 
     internal fun setGridAllowedArea(width: Float, height: Float) {
         gridAllowedArea = Size(width, height)
     }
 
-    inline fun widthLimitCheck(
-        targetWidth: Float,
-        topLeft: Offset,
-        allowedWidth: Float,
-        minWidth: Float,
-        onGridAreaLimitExceeded: () -> Unit,
-        onMinWidthLimitExceeded: () -> Unit,
-        onEach: () -> Unit,
-        onElse: () -> Unit = {},
-    ) {
-
-        val isWidthBiggerThanAllowedWidth = targetWidth + topLeft.x > allowedWidth
-        val isWidthLessThanMinWidth = targetWidth < minWidth
-        when {
-            isWidthBiggerThanAllowedWidth -> {
-                onGridAreaLimitExceeded()
-                onEach()
-            }
-
-            isWidthLessThanMinWidth -> {
-                onMinWidthLimitExceeded()
-                onEach()
-            }
-
-            else -> {
-                onElse()
-            }
-        }
-
-    }
-
     fun setAspectRatio(ratio: Ratio) {
         val currentRatio = size.width / size.height
         val targetRatio = ratio.value
-        if (currentRatio == targetRatio) { return }
+        if (currentRatio == targetRatio) {
+            return
+        }
 
         var appliedWidth = size.width
         var appliedHeight: Float
@@ -172,7 +145,9 @@ class CropState(
                 else -> nextHeight
             }
 
-            if (applyNewHeight) { break }
+            if (applyNewHeight) {
+                break
+            }
 
             appliedWidth = appliedHeight * targetRatio
 
@@ -180,7 +155,9 @@ class CropState(
             val widthLessThanMinWidth = isWidthLessThanMinWidth(targetWidth = appliedWidth)
             val applyNewWidth = !widthBiggerThanAllowedWidth && !widthLessThanMinWidth
 
-            if (applyNewWidth) { break }
+            if (applyNewWidth) {
+                break
+            }
 
             appliedWidth = when {
                 widthBiggerThanAllowedWidth -> gridAllowedArea.width - topLeft.x
@@ -189,7 +166,7 @@ class CropState(
 
         } while (true);
 
-        size = Size(appliedWidth, appliedHeight)
+        _size.value = Size(appliedWidth, appliedHeight)
     }
 
     private fun isWidthBiggerThanAllowedWidth(targetWidth: Float): Boolean {
@@ -207,19 +184,6 @@ class CropState(
 
     private fun isHeightLessThanMinHeight(targetHeight: Float): Boolean {
         return targetHeight < minSize.height
-    }
-
-    @JvmInline
-    value class Ratio private constructor(
-        val value: Float,
-    ) {
-        companion object {
-            val RATIO_16_9 = Ratio(16f / 9f)
-            val RATIO_9_16 = Ratio(9f / 16f)
-            val RATIO_4_3 = Ratio(4f / 3f)
-            val RATIO_3_4 = Ratio(3f / 4f)
-            val RATIO_1_1 = Ratio(1f / 1f)
-        }
     }
 }
 

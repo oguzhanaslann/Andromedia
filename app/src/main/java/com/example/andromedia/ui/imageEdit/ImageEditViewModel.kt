@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
+import android.util.Log
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,6 +29,8 @@ class ImageEditViewModel : ViewModel() {
         brightness: Float? = null,
         contrast: Float? = null,
         rotation: Float,
+        cropTopLeft: Pair<Float, Float>,
+        cropSize: Pair<Float, Float>,
     ) {
         val colorMatrix = colorMatrix ?: kotlin.run {
             _bitmap.value = original.value
@@ -36,6 +39,12 @@ class ImageEditViewModel : ViewModel() {
         val bitmap = original.value ?: return
         val targetBmp: Bitmap = bitmap
             .copy(Bitmap.Config.ARGB_8888, false)
+            .cropped(
+                cropTopLeft.first,
+                cropTopLeft.second,
+                cropSize.first,
+                cropSize.second
+            )
             .rotate(rotation)
 
         val resultBitmap =

@@ -39,7 +39,7 @@ internal fun GridView(
                     val yDp = change.position.y.toDp()
                     when {
                         isTopLeftCorner(xDp, yDp, cropState.topLeft) -> {
-                            cropState.topLeft = Offset(
+                            cropState.setTopLeft(
                                 x = boundedNewX(
                                     topLeft = cropState.topLeft,
                                     dragAmount = dragAmount,
@@ -54,7 +54,7 @@ internal fun GridView(
                                 )
                             )
 
-                            cropState.size = Size(
+                            cropState.setSize(
                                 width = boundedWidth(
                                     cropState.size.width - dragAmount.x,
                                     maxWidthPx
@@ -68,7 +68,7 @@ internal fun GridView(
 
                         isTopRightCorner(xDp, yDp, cropState.topLeft, cropState.size) -> {
 
-                            cropState.topLeft = Offset(
+                            cropState.setTopLeft(
                                 x = cropState.topLeft.x,
                                 y = boundedNewY(
                                     topLeft = cropState.topLeft,
@@ -78,7 +78,7 @@ internal fun GridView(
                                 )
                             )
 
-                            cropState.size = Size(
+                            cropState.setSize(
                                 width = boundedWidth(
                                     cropState.size.width + dragAmount.x,
                                     maxWidthPx
@@ -91,7 +91,7 @@ internal fun GridView(
                         }
 
                         isBottomLeftCorner(xDp, yDp, cropState.topLeft, cropState.size) -> {
-                            cropState.topLeft = Offset(
+                            cropState.setTopLeft(
                                 x = boundedNewX(
                                     topLeft = cropState.topLeft,
                                     dragAmount = dragAmount,
@@ -101,7 +101,7 @@ internal fun GridView(
                                 y = cropState.topLeft.y
                             )
 
-                            cropState.size = Size(
+                            cropState.setSize(
                                 width = boundedWidth(
                                     cropState.size.width - dragAmount.x,
                                     maxWidthPx
@@ -119,7 +119,7 @@ internal fun GridView(
                             cropState.topLeft,
                             cropState.size
                         ) -> {
-                            cropState.size = Size(
+                            cropState.setSize(
                                 width = boundedWidth(
                                     cropState.size.width + dragAmount.x,
                                     maxWidthPx
@@ -145,14 +145,14 @@ internal fun GridView(
                                 maxHeightPx
                             )
 
-                            cropState.topLeft = Offset(
+                            cropState.setTopLeft(
                                 x = newX,
                                 y = newY
                             )
                         }
 
                         isLeftEdge(xDp, yDp, cropState.topLeft, cropState.size) -> {
-                            cropState.topLeft = Offset(
+                            cropState.setTopLeft(
                                 x = boundedNewX(
                                     topLeft = cropState.topLeft,
                                     dragAmount = dragAmount,
@@ -162,7 +162,7 @@ internal fun GridView(
                                 y = cropState.topLeft.y
                             )
 
-                            cropState.size = Size(
+                            cropState.setSize(
                                 width = boundedWidth(
                                     cropState.size.width - dragAmount.x,
                                     maxWidthPx
@@ -172,7 +172,7 @@ internal fun GridView(
                         }
 
                         isRightEdge(xDp, yDp, cropState.topLeft, cropState.size) -> {
-                            cropState.size = Size(
+                            cropState.setSize(
                                 width = boundedWidth(
                                     cropState.size.width + dragAmount.x,
                                     maxWidthPx
