@@ -1,14 +1,10 @@
 package com.example.andromedia.ui.imageEdit
 
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.oguzhanaslann.cropView.cropShape.cropState.CropState
 import com.oguzhanaslann.cropView.util.blur
-import com.oguzhanaslann.cropView.util.cropped
 import com.oguzhanaslann.cropView.util.filtered
 import com.oguzhanaslann.cropView.util.rotate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,17 +58,15 @@ class ImageEditViewModel : ViewModel() {
     }
 
     fun applyChanges(
-        cropTopLeft: Pair<Float, Float>,
-        cropSize: Pair<Float, Float>,
+        cropShape: CropState
     ) {
         val colorMatrix = filter.value?.colorMatrix ?: kotlin.run {
             _bitmap.value = original.value
             return
         }
         val bitmap = original.value ?: return
-        _bitmap.value = bitmap
+        _bitmap.value = cropShape.crop(bitmap)
             .copy(Bitmap.Config.ARGB_8888, true)
-            .cropped(cropTopLeft.first, cropTopLeft.second, cropSize.first, cropSize.second)
             .rotate(rotation.value)
             .blur(blur.value * 1.5f)
             .filtered(colorMatrix, brightness.value, contrast.value)

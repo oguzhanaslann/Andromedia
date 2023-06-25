@@ -1,6 +1,5 @@
 package com.oguzhanaslann.cropView
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,37 +11,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.oguzhanaslann.cropView.util.cropped
-
-interface CropShapeState {
-    fun resize(
-        change: PointerInputChange,
-        dragAmount: Offset,
-        maxSize: Size,
-    ): PointerInputScope.() -> Unit
-
-    fun crop(bitmap: Bitmap): Bitmap
-
-}
-
-interface RectangleCropShapeState : CropShapeState {
-    val topLeft: Offset
-    val size: Size
-
-    override fun crop(bitmap: Bitmap): Bitmap {
-        return bitmap.cropped(
-            topLeftX = topLeft.x,
-            topLeftY = topLeft.y,
-            width = size.width,
-            height = size.height
-        )
-    }
-}
+import com.oguzhanaslann.cropView.cropShape.cropState.RectangleCropShapeState
 
 @Composable
 internal fun GridView(

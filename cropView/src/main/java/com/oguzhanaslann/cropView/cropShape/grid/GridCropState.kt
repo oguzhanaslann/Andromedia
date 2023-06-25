@@ -1,4 +1,4 @@
-package com.oguzhanaslann.cropView
+package com.oguzhanaslann.cropView.cropShape.grid
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -12,6 +12,16 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.unit.dp
+import com.oguzhanaslann.cropView.Ratio
+import com.oguzhanaslann.cropView.cropShape.cropState.RectangleCropShapeState
+import com.oguzhanaslann.cropView.isBottomLeftCorner
+import com.oguzhanaslann.cropView.isBottomRightCorner
+import com.oguzhanaslann.cropView.isLeftEdge
+import com.oguzhanaslann.cropView.isMiddle
+import com.oguzhanaslann.cropView.isRightEdge
+import com.oguzhanaslann.cropView.isTopLeftCorner
+import com.oguzhanaslann.cropView.isTopRightCorner
+import com.oguzhanaslann.cropView.toPx
 import com.oguzhanaslann.cropView.util.boundedHeight
 import com.oguzhanaslann.cropView.util.boundedNewX
 import com.oguzhanaslann.cropView.util.boundedNewY
@@ -34,7 +44,7 @@ class GridCropState(
     override    val topLeft by _topLeft
 
     private val _size = mutableStateOf(size)
-    override val size: Size by _size
+    override var size: Size by _size
 
     private var gridAllowedArea by mutableStateOf(size)
 
@@ -267,7 +277,7 @@ class GridCropState(
     }
 
 
-    internal fun setTopLeft(x: Float, y: Float) {
+    private fun setTopLeft(x: Float, y: Float) {
         val newTopLeft =
             topLeftInAllowedArea(
                 topLeft = Offset(x, y),
@@ -277,7 +287,7 @@ class GridCropState(
         _topLeft.value = newTopLeft
     }
 
-    internal fun setSize(width: Float, height: Float) {
+    override fun setSize(width: Float, height: Float) {
         val newSize = sizeInLimits(
             size = Size(width, height),
             allowedWidth = gridAllowedArea.width,

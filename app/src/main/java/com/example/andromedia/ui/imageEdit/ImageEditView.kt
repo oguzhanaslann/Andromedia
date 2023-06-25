@@ -48,9 +48,10 @@ import com.example.andromedia.ui.SelectImageView
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.theme.AndromediaTheme
 import com.oguzhanaslann.cropView.Crop
-import com.oguzhanaslann.cropView.GridCropState
 import com.oguzhanaslann.cropView.Ratio
-import com.oguzhanaslann.cropView.rememberGridCropState
+import com.oguzhanaslann.cropView.cropShape.CropShape
+import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCrop
+import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCropState
 import com.oguzhanaslann.cropView.toPx
 import com.oguzhanaslann.cropView.util.brightnessApplied
 import com.oguzhanaslann.cropView.util.contractionApplied
@@ -87,8 +88,10 @@ fun ImageEditView(
     val editPanelOpen by remember(editPanel) { derivedStateOf { editPanel != null } }
 
 
-    val cropState = rememberGridCropState(
-        size = Size(200.dp.toPx(), 200.dp.toPx()),
+    val cropState = rememberGridCrop(
+        rememberGridCropState(
+            size = Size(200.dp.toPx(), 200.dp.toPx()),
+        )
     )
 
     val bitmap by imageEditViewModel.bitmap.collectAsState()
@@ -169,7 +172,7 @@ fun ImageEditView(
                             rotation = animatedRotation,
                             uri = photoUri!!,
                             crop = editPanel == EditPanel.CROP,
-                            gridCropState = cropState
+                            cropShape = cropState
                         )
                     }
                 }
@@ -391,14 +394,12 @@ fun ImageEditView(
 @Composable
 private fun DoneButton(
     imageEditViewModel: ImageEditViewModel,
-    gridCropState: GridCropState,
+    cropShape: CropShape,
 ) {
+
     IconButton(
         onClick = {
-            imageEditViewModel.applyChanges(
-                cropTopLeft = gridCropState.topLeft.x to gridCropState.topLeft.y,
-                cropSize = gridCropState.size.width to gridCropState.size.height,
-            )
+            imageEditViewModel.applyChanges(cropShape.state)
         }) {
         Icon(
             imageVector = Icons.Default.Check,
@@ -490,7 +491,7 @@ fun ImageOnEditView(
     rotation: Float = 0f,
     uri: Uri,
     crop: Boolean = false,
-    gridCropState: GridCropState = rememberGridCropState(),
+    cropShape: CropShape = rememberGridCrop(),
 ) {
 
     val contrast by imageEditViewModel.contrast.collectAsState()
@@ -507,7 +508,7 @@ fun ImageOnEditView(
     Crop(
         modifier = modifier,
         drawGrid = crop,
-        gridCropState = gridCropState,
+        cropShape = cropShape
     ) {
         AsyncImage(
             modifier = Modifier

@@ -17,14 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.oguzhanaslann.cropView.cropShape.CropShape
+import com.oguzhanaslann.cropView.cropShape.grid.GridCrop
+import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCropState
 
 @Composable
 fun Crop(
     modifier: Modifier = Modifier,
-    gridCropState: GridCropState = rememberGridCropState(),
+    cropShape: CropShape = GridCrop(rememberGridCropState()),
     drawGrid: Boolean = true,
     content: @Composable () -> Unit,
 ) {
+    val gridCropState = cropShape.state
+
     BoxWithConstraints(modifier = modifier) {
         val maxWidthPx = maxWidth.toPx()
         val maxHeightPx = maxHeight.toPx()
@@ -53,19 +58,7 @@ fun Crop(
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            GridView(
-                gridCropState,
-                maxSize = Size(
-                    width = maxWidthPx,
-                    height = maxHeightPx
-                ),
-                onDrawGrid = {
-                    gridCropState.setGridAllowedArea(
-                        width = size.width,
-                        height = size.height,
-                    )
-                }
-            )
+            cropShape.content(maxWidthPx, maxHeightPx)
         }
     }
 }
