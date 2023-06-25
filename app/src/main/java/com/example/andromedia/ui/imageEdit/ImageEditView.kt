@@ -49,9 +49,12 @@ import com.example.andromedia.ui.SelectImageView
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.theme.AndromediaTheme
 import com.oguzhanaslann.cropView.Crop
+import com.oguzhanaslann.cropView.CropState
 import com.oguzhanaslann.cropView.Ratio
 import com.oguzhanaslann.cropView.rememberCropState
 import com.oguzhanaslann.cropView.toPx
+import com.oguzhanaslann.cropView.util.brightnessApplied
+import com.oguzhanaslann.cropView.util.contractionApplied
 
 val brightnessRange = -180f..180f
 val contrastRange = 0f..10f
@@ -70,11 +73,12 @@ fun ImageEditView(
         onResult = { uri -> uri?.let { photoUri = it } }
     )
 
-    var brightness by remember { mutableStateOf(0.0f) }
-    var contrast by remember { mutableStateOf(0.625f) }
-    var blur by remember { mutableStateOf(0f) }
-
-    var rotation by remember { mutableStateOf(0f) }
+    val state by imageEditViewModel.state.collectAsState()
+    val brightness = state.brightness
+    val appliedFilter: ColorFilterModel? = state.filter
+    val contrast = state.contrast
+    val blur = state.blur
+    val rotation = state.rotation
     val animatedRotation by animateFloatAsState(
         targetValue = rotation,
         animationSpec = spring(stiffness = 100f),
@@ -83,7 +87,6 @@ fun ImageEditView(
     var editPanel by remember { mutableStateOf<EditPanel?>(null) }
     val editPanelOpen by remember(editPanel) { derivedStateOf { editPanel != null } }
 
-    var appliedFilter: ColorFilterModel? by remember { mutableStateOf(null) }
 
     val cropState = rememberCropState(
         size = Size(200.dp.toPx(), 200.dp.toPx()),
@@ -116,44 +119,18 @@ fun ImageEditView(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
 
-                    val onBackPressedDispatcher =
-                        LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-                    IconButton(onClick = { onBackPressedDispatcher?.onBackPressed() }) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowLeft,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
+                    BackButton()
 
                     Spacer(
                         modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
 
-                    IconButton(
-                        onClick = {
-                            imageEditViewModel.applyChanges(
-                                appliedFilter?.colorMatrix,
-                                brightness,
-                                contrast,
-                                rotation,
-                                cropTopLeft = cropState.topLeft.x to cropState.topLeft.y,
-                                cropSize = cropState.size.width to cropState.size.height,
-                            )
-                        }) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
+                    ShareButton()
+
+                    DoneButton(
+                        imageEditViewModel,
+                        cropState
+                    )
 
                 }
 
@@ -189,12 +166,9 @@ fun ImageEditView(
                         else -> ImageOnEditView(
                             modifier = Modifier.fillMaxSize(),
                             imageEditViewModel = imageEditViewModel,
-                            uri = photoUri!!,
-                            brightness = brightness,
-                            contrast = contrast,
-                            blur = blur,
-                            rotation = animatedRotation,
                             colorMatrix = appliedFilter?.colorMatrix,
+                            rotation = animatedRotation,
+                            uri = photoUri!!,
                             crop = editPanel == EditPanel.CROP,
                             cropState = cropState
                         )
@@ -221,7 +195,7 @@ fun ImageEditView(
                         }
 
                         IconButton(onClick = {
-                            rotation = (rotation - 90f) % (Float.MAX_VALUE - 90f)
+                            imageEditViewModel.setRotation((rotation - 90f) % (Float.MAX_VALUE - 90f))
                         }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_rotate_90_degrees_ccw_24),
@@ -263,11 +237,11 @@ fun ImageEditView(
                         when (editPanel) {
                             EditPanel.ADJUST -> AdjustImageSettingsView(
                                 brightness = brightness,
-                                onBrightnessChange = { brightness = it },
+                                onBrightnessChange = imageEditViewModel::setBrightness,
                                 contrast = contrast,
-                                onContrastChange = { contrast = it },
+                                onContrastChange = imageEditViewModel::setContrast,
                                 blur = blur,
-                                onBlurChange = { blur = it }
+                                onBlurChange = imageEditViewModel::setBlur
                             )
 
                             EditPanel.FILTER -> LazyRow(
@@ -278,7 +252,7 @@ fun ImageEditView(
                             ) {
                                 items(
                                     listOf(
-                                        null,
+                                        noneFilter,
                                         grayFilter,
                                         yellowFilter,
                                         blueFilter,
@@ -288,13 +262,7 @@ fun ImageEditView(
                                         sepiaFilter
                                     )
                                 ) {
-                                    when (it) {
-                                        null -> AdjustedImageView(photoUri!!) { appliedFilter = it }
-                                        else -> AdjustedImageView(photoUri!!, it) {
-                                            appliedFilter = it
-                                        }
-                                    }
-
+                                    AdjustedImageView(photoUri!!, it, imageEditViewModel::setFilter)
                                 }
                             }
 
@@ -422,6 +390,50 @@ fun ImageEditView(
 }
 
 @Composable
+private fun DoneButton(
+    imageEditViewModel: ImageEditViewModel,
+    cropState: CropState,
+) {
+    IconButton(
+        onClick = {
+            imageEditViewModel.applyChanges(
+                cropTopLeft = cropState.topLeft.x to cropState.topLeft.y,
+                cropSize = cropState.size.width to cropState.size.height,
+            )
+        }) {
+        Icon(
+            imageVector = Icons.Default.Check,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Composable
+private fun ShareButton() {
+    IconButton(onClick = {}) {
+        Icon(
+            imageVector = Icons.Default.Share,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Composable
+private fun BackButton() {
+    val onBackPressedDispatcher =
+        LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    IconButton(onClick = { onBackPressedDispatcher?.onBackPressed() }) {
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowLeft,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Composable
 fun AdjustImageSettingsView(
     brightness: Float,
     onBrightnessChange: (Float) -> Unit,
@@ -475,44 +487,23 @@ fun AdjustImageSettingsView(
 fun ImageOnEditView(
     modifier: Modifier = Modifier,
     imageEditViewModel: ImageEditViewModel,
-    uri: Uri,
-    brightness: Float = 0f,
-    contrast: Float = 0f,
-    blur: Float = 0f,
+    colorMatrix: ColorMatrix?,
     rotation: Float = 0f,
-    colorMatrix: ColorMatrix? = null,
+    uri: Uri,
     crop: Boolean = false,
-    cropState: com.oguzhanaslann.cropView.CropState = com.oguzhanaslann.cropView.rememberCropState(),
+    cropState: CropState = rememberCropState(),
 ) {
 
-    val updatedColorMatrix = remember(
-        contrast,
-        brightness,
+    val contrast by imageEditViewModel.contrast.collectAsState()
+    val brightness by imageEditViewModel.brightness.collectAsState()
+    val blur by imageEditViewModel.blur.collectAsState()
+
+    val updatedColorMatrix = remember(contrast, brightness, colorMatrix) {
         colorMatrix
-    ) {
-        // Create a new matrix or clone the provided one if not null
-        val matrix = colorMatrix?.values?.clone() ?: floatArrayOf(
-            contrast, 0f, 0f, 0f, brightness,
-            0f, contrast, 0f, 0f, brightness,
-            0f, 0f, contrast, 0f, brightness,
-            0f, 0f, 0f, 1f, 0f
-        )
-        // Apply the brightness value
-        matrix.apply {
-            set(4, get(4) + brightness)
-            set(9, get(9) + brightness)
-            set(14, get(14) + brightness)
-        }
-        // Apply the contrast value
-        matrix.apply {
-            val scale = contrast + 1f
-            set(0, get(0) * scale)
-            set(6, get(6) * scale)
-            set(12, get(12) * scale)
-            set(18, get(18) * scale)
-        }
-        ColorMatrix(matrix)
+            .brightnessApplied(brightness)
+            .contractionApplied(contrast)
     }
+
 
     Crop(
         modifier = modifier,
@@ -523,15 +514,12 @@ fun ImageOnEditView(
             modifier = Modifier
                 .fillMaxSize()
                 .rotate(rotation)
-                .blur(blur.dp),
+                .blur((blur).dp * 1.5f),
             model = uri,
             contentScale = ContentScale.Crop,
             contentDescription = null,
-            colorFilter = ColorFilter.colorMatrix(
-                updatedColorMatrix
-            ),
+            colorFilter = ColorFilter.colorMatrix(updatedColorMatrix),
             onState = {
-                Log.e("TAG", "ImageOnEditView: $it")
                 if (it is AsyncImagePainter.State.Success) {
                     imageEditViewModel.onImageLoaded(it.result.drawable.toBitmapOrNull())
                 }

@@ -6,13 +6,16 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+
+val touchSlop = 48.dp
+
 internal fun PointerInputScope.isTopLeftCorner(
     xDp: Dp,
     yDp: Dp,
     topLeft: Offset,
 ): Boolean {
-    return xDp in topLeft.x.toDp() - 48.dp..topLeft.x.toDp() + 48.dp
-            && yDp in topLeft.y.toDp() - 48.dp..topLeft.y.toDp() + 48.dp
+    return xDp in topLeft.x.toDp() - touchSlop..topLeft.x.toDp() + touchSlop
+            && yDp in topLeft.y.toDp() - touchSlop..topLeft.y.toDp() + touchSlop
 }
 
 internal fun PointerInputScope.isTopRightCorner(
@@ -21,8 +24,8 @@ internal fun PointerInputScope.isTopRightCorner(
     topLeft: Offset,
     size: Size,
 ): Boolean {
-    return xDp in topLeft.x.toDp() + size.width.toDp() - 48.dp..topLeft.x.toDp() + size.width.toDp() + 48.dp
-            && yDp in topLeft.y.toDp() - 48.dp..topLeft.y.toDp() + 48.dp
+    return xDp in topLeft.x.toDp() + size.width.toDp() - touchSlop..topLeft.x.toDp() + size.width.toDp() + touchSlop
+            && yDp in topLeft.y.toDp() - touchSlop..topLeft.y.toDp() + touchSlop
 }
 
 internal fun PointerInputScope.isBottomLeftCorner(
@@ -31,8 +34,8 @@ internal fun PointerInputScope.isBottomLeftCorner(
     topLeft: Offset,
     size: Size,
 ): Boolean {
-    return xDp in topLeft.x.toDp() - 48.dp..topLeft.x.toDp() + 48.dp
-            && yDp in topLeft.y.toDp() + size.height.toDp() - 48.dp..topLeft.y.toDp() + size.height.toDp() + 48.dp
+    return xDp in topLeft.x.toDp() - touchSlop..topLeft.x.toDp() + touchSlop
+            && yDp in topLeft.y.toDp() + size.height.toDp() - touchSlop..topLeft.y.toDp() + size.height.toDp() + touchSlop
 }
 
 internal fun PointerInputScope.isBottomRightCorner(
@@ -41,8 +44,8 @@ internal fun PointerInputScope.isBottomRightCorner(
     topLeft: Offset,
     size: Size,
 ): Boolean {
-    return xDp in topLeft.x.toDp() + size.width.toDp() - 48.dp..topLeft.x.toDp() + size.width.toDp() + 48.dp
-            && yDp in topLeft.y.toDp() + size.height.toDp() - 48.dp..topLeft.y.toDp() + size.height.toDp() + 48.dp
+    return xDp in topLeft.x.toDp() + size.width.toDp() - touchSlop..topLeft.x.toDp() + size.width.toDp() + touchSlop
+            && yDp in topLeft.y.toDp() + size.height.toDp() - touchSlop..topLeft.y.toDp() + size.height.toDp() + touchSlop
 }
 
 internal fun PointerInputScope.isMiddle(
@@ -51,8 +54,8 @@ internal fun PointerInputScope.isMiddle(
     topLeft: Offset,
     size: Size,
 ): Boolean {
-    return xDp in topLeft.x.toDp() + 48.dp..topLeft.x.toDp() + size.width.toDp() - 48.dp
-            && yDp in topLeft.y.toDp() + 48.dp..topLeft.y.toDp() + size.height.toDp() - 48.dp
+    return xDp in topLeft.x.toDp() + touchSlop..topLeft.x.toDp() + size.width.toDp() - touchSlop
+            && yDp in topLeft.y.toDp() + touchSlop..topLeft.y.toDp() + size.height.toDp() - touchSlop
 }
 
 internal fun PointerInputScope.isLeftEdge(
@@ -61,8 +64,8 @@ internal fun PointerInputScope.isLeftEdge(
     topLeft: Offset,
     size: Size,
 ): Boolean {
-    return xDp in topLeft.x.toDp() - 48.dp..topLeft.x.toDp() + 48.dp
-            && yDp in topLeft.y.toDp() + 48.dp..topLeft.y.toDp() + size.height.toDp() - 48.dp
+    return xDp in topLeft.x.toDp() - touchSlop..topLeft.x.toDp() + touchSlop
+            && yDp in topLeft.y.toDp() + touchSlop..topLeft.y.toDp() + size.height.toDp() - touchSlop
 }
 
 internal fun PointerInputScope.isRightEdge(
@@ -71,6 +74,6 @@ internal fun PointerInputScope.isRightEdge(
     topLeft: Offset,
     size: Size,
 ): Boolean {
-    return xDp in topLeft.x.toDp() + size.width.toDp() - 48.dp..topLeft.x.toDp() + size.width.toDp() + 48.dp
-            && yDp in topLeft.y.toDp() + 48.dp..topLeft.y.toDp() + size.height.toDp() - 48.dp
+    return xDp in topLeft.x.toDp() + size.width.toDp() - touchSlop..topLeft.x.toDp() + size.width.toDp() + touchSlop
+            && yDp in topLeft.y.toDp() + touchSlop..topLeft.y.toDp() + size.height.toDp() - touchSlop
 }
