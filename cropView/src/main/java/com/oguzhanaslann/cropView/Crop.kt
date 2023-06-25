@@ -21,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun Crop(
     modifier: Modifier = Modifier,
-    cropState: CropState = rememberCropState(),
+    gridCropState: GridCropState = rememberGridCropState(),
     drawGrid: Boolean = true,
     content: @Composable () -> Unit,
 ) {
@@ -31,12 +31,12 @@ fun Crop(
 
         LaunchedEffect(maxWidthPx, maxHeightPx) {
             when {
-                cropState.size_ == Size.Zero -> {
-                    cropState.setSize(maxWidthPx, maxHeightPx)
+                gridCropState.size == Size.Zero -> {
+                    gridCropState.setSize(maxWidthPx, maxHeightPx)
                 }
 
-                cropState.size_.width > maxWidthPx || cropState.size_.height > maxHeightPx -> {
-                    cropState.setSize(maxWidthPx, maxHeightPx)
+                gridCropState.size.width > maxWidthPx || gridCropState.size.height > maxHeightPx -> {
+                    gridCropState.setSize(maxWidthPx, maxHeightPx)
                 }
             }
         }
@@ -54,13 +54,13 @@ fun Crop(
             exit = fadeOut()
         ) {
             GridView(
-                cropState,
+                gridCropState,
                 maxSize = Size(
                     width = maxWidthPx,
                     height = maxHeightPx
                 ),
                 onDrawGrid = {
-                    cropState.setGridAllowedArea(
+                    gridCropState.setGridAllowedArea(
                         width = size.width,
                         height = size.height,
                     )

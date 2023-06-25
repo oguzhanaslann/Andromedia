@@ -12,26 +12,29 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.unit.dp
+import com.oguzhanaslann.cropView.util.boundedHeight
+import com.oguzhanaslann.cropView.util.boundedNewX
+import com.oguzhanaslann.cropView.util.boundedNewY
+import com.oguzhanaslann.cropView.util.boundedWidth
+import com.oguzhanaslann.cropView.util.isHeightBiggerThanAllowedHeight
+import com.oguzhanaslann.cropView.util.isHeightLessThanMinHeight
+import com.oguzhanaslann.cropView.util.isWidthBiggerThanAllowedWidth
+import com.oguzhanaslann.cropView.util.isWidthLessThanMinWidth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class CropState(
+class GridCropState(
     topLeft: Offset = Offset.Zero,
     size: Size = Size.Zero,
     coroutineScope: CoroutineScope,
     val minSize: Size,
 ) : RectangleCropShapeState {
     private val _topLeft = mutableStateOf(topLeft)
-    val topLeft_ by _topLeft
+    override    val topLeft by _topLeft
 
     private val _size = mutableStateOf(size)
-    val size_ by _size
-
-    override val topLeft: Offset
-        get() = _topLeft.value
-    override val size: Size
-        get() = _size.value
+    override val size: Size by _size
 
     private var gridAllowedArea by mutableStateOf(size)
 
@@ -55,75 +58,75 @@ class CropState(
         val maxWidthPx = maxSize.width
         val maxHeightPx = maxSize.height
         when {
-            isTopLeftCorner(xDp, yDp, topLeft) -> {
+            isTopLeftCorner(xDp, yDp, this@GridCropState.topLeft) -> {
                 setTopLeft(
                     x = boundedNewX(
-                        topLeft = topLeft,
+                        topLeft = this@GridCropState.topLeft,
                         dragAmount = dragAmount,
-                        size = this@CropState.size,
+                        size = this@GridCropState.size,
                         maxWidthPx = maxWidthPx
                     ),
                     y = boundedNewY(
-                        topLeft = topLeft,
+                        topLeft = this@GridCropState.topLeft,
                         dragAmount = dragAmount,
-                        size = this@CropState.size,
+                        size = this@GridCropState.size,
                         maxHeightPx = maxHeightPx
                     )
                 )
 
                 setSize(
                     width = boundedWidth(
-                        this@CropState.size.width - dragAmount.x,
+                        this@GridCropState.size.width - dragAmount.x,
                         maxWidthPx
                     ),
                     height = boundedHeight(
-                        this@CropState.size.height - dragAmount.y,
+                        this@GridCropState.size.height - dragAmount.y,
                         maxHeightPx
                     )
                 )
             }
 
-            isTopRightCorner(xDp, yDp, topLeft, this@CropState.size) -> {
+            isTopRightCorner(xDp, yDp, this@GridCropState.topLeft, this@GridCropState.size) -> {
                 setTopLeft(
-                    x = topLeft.x,
+                    x = this@GridCropState.topLeft.x,
                     y = boundedNewY(
-                        topLeft = topLeft,
+                        topLeft = this@GridCropState.topLeft,
                         dragAmount = dragAmount,
-                        size = this@CropState.size,
+                        size = this@GridCropState.size,
                         maxHeightPx = maxHeightPx
                     )
                 )
 
                 setSize(
                     width = boundedWidth(
-                        this@CropState.size.width + dragAmount.x,
+                        this@GridCropState.size.width + dragAmount.x,
                         maxWidthPx
                     ),
                     height = boundedHeight(
-                        this@CropState.size.height - dragAmount.y,
+                        this@GridCropState.size.height - dragAmount.y,
                         maxHeightPx
                     )
                 )
             }
 
-            isBottomLeftCorner(xDp, yDp, topLeft, this@CropState.size) -> {
+            isBottomLeftCorner(xDp, yDp, this@GridCropState.topLeft, this@GridCropState.size) -> {
                 setTopLeft(
                     x = boundedNewX(
-                        topLeft = topLeft,
+                        topLeft = this@GridCropState.topLeft,
                         dragAmount = dragAmount,
-                        size = this@CropState.size,
+                        size = this@GridCropState.size,
                         maxWidthPx = maxWidthPx
                     ),
-                    y = topLeft.y
+                    y = this@GridCropState.topLeft.y
                 )
 
                 setSize(
                     width = boundedWidth(
-                        this@CropState.size.width - dragAmount.x,
+                        this@GridCropState.size.width - dragAmount.x,
                         maxWidthPx
                     ),
                     height = boundedHeight(
-                        this@CropState.size.height + dragAmount.y,
+                        this@GridCropState.size.height + dragAmount.y,
                         maxHeightPx
                     )
                 )
@@ -132,32 +135,32 @@ class CropState(
             isBottomRightCorner(
                 xDp,
                 yDp,
-                topLeft,
-                this@CropState.size
+                this@GridCropState.topLeft,
+                this@GridCropState.size
             ) -> {
                 setSize(
                     width = boundedWidth(
-                        this@CropState.size.width + dragAmount.x,
+                        this@GridCropState.size.width + dragAmount.x,
                         maxWidthPx
                     ),
                     height = boundedHeight(
-                        this@CropState.size.height + dragAmount.y,
+                        this@GridCropState.size.height + dragAmount.y,
                         maxHeightPx
                     )
                 )
             }
 
-            isMiddle(xDp, yDp, topLeft, this@CropState.size) -> {
+            isMiddle(xDp, yDp, this@GridCropState.topLeft, this@GridCropState.size) -> {
                 val newX = boundedNewX(
-                    topLeft,
+                    this@GridCropState.topLeft,
                     dragAmount,
-                    this@CropState.size,
+                    this@GridCropState.size,
                     maxWidthPx
                 )
                 val newY = boundedNewY(
-                    topLeft,
+                    this@GridCropState.topLeft,
                     dragAmount,
-                    this@CropState.size,
+                    this@GridCropState.size,
                     maxHeightPx
                 )
 
@@ -167,33 +170,33 @@ class CropState(
                 )
             }
 
-            isLeftEdge(xDp, yDp, topLeft, this@CropState.size) -> {
+            isLeftEdge(xDp, yDp, this@GridCropState.topLeft, this@GridCropState.size) -> {
                 setTopLeft(
                     x = boundedNewX(
-                        topLeft = topLeft,
+                        topLeft = this@GridCropState.topLeft,
                         dragAmount = dragAmount,
-                        size = this@CropState.size,
+                        size = this@GridCropState.size,
                         maxWidthPx = maxWidthPx
                     ),
-                    y = topLeft.y
+                    y = this@GridCropState.topLeft.y
                 )
 
                 setSize(
                     width = boundedWidth(
-                        this@CropState.size.width - dragAmount.x,
+                        this@GridCropState.size.width - dragAmount.x,
                         maxWidthPx
                     ),
-                    height = this@CropState.size.height
+                    height = this@GridCropState.size.height
                 )
             }
 
-            isRightEdge(xDp, yDp, topLeft, this@CropState.size) -> {
+            isRightEdge(xDp, yDp, this@GridCropState.topLeft, this@GridCropState.size) -> {
                 setSize(
                     width = boundedWidth(
-                        this@CropState.size.width + dragAmount.x,
+                        this@GridCropState.size.width + dragAmount.x,
                         maxWidthPx
                     ),
-                    height = this@CropState.size.height
+                    height = this@GridCropState.size.height
                 )
             }
 
@@ -207,8 +210,8 @@ class CropState(
     ) {
         val allowedWidth = allowedArea.width
         val allowedHeight = allowedArea.height
-        _topLeft.value = topLeftInAllowedArea(topLeft_, allowedWidth, allowedHeight)
-        _size.value = sizeInLimits(size_, allowedWidth, allowedHeight)
+        _topLeft.value = topLeftInAllowedArea(this.topLeft, allowedWidth, allowedHeight)
+        _size.value = sizeInLimits(this.size, allowedWidth, allowedHeight)
     }
 
     private fun topLeftInAllowedArea(
@@ -226,12 +229,12 @@ class CropState(
             currentTopLeft = Offset(currentTopLeft.x, 0f)
         }
 
-        if (currentTopLeft.x + size_.width > allowedWidth) {
-            currentTopLeft = Offset(allowedWidth - size_.width, currentTopLeft.y)
+        if (currentTopLeft.x + this.size.width > allowedWidth) {
+            currentTopLeft = Offset(allowedWidth - this.size.width, currentTopLeft.y)
         }
 
-        if (currentTopLeft.y + size_.height > allowedHeight) {
-            currentTopLeft = Offset(currentTopLeft.x, allowedHeight - size_.height)
+        if (currentTopLeft.y + this.size.height > allowedHeight) {
+            currentTopLeft = Offset(currentTopLeft.x, allowedHeight - this.size.height)
         }
 
         return currentTopLeft
@@ -288,23 +291,30 @@ class CropState(
     }
 
     fun setAspectRatio(ratio: Ratio) {
-        val currentRatio = size_.width / size_.height
+        val currentRatio = this.size.width / this.size.height
         val targetRatio = ratio.value
         if (currentRatio == targetRatio) {
             return
         }
 
-        var appliedWidth = size_.width
+        var appliedWidth = this.size.width
         var appliedHeight: Float
 
         do {
             val nextHeight = appliedWidth / targetRatio
 
-            val heightBiggerThanAllowedHeight = isHeightBiggerThanAllowedHeight(nextHeight)
-            val heightLessThanMinHeight = isHeightLessThanMinHeight(targetHeight = nextHeight)
+            val heightBiggerThanAllowedHeight = isHeightBiggerThanAllowedHeight(
+                targetHeight = nextHeight,
+                allowedHeight = gridAllowedArea.height,
+                topY = this.topLeft.y
+            )
+            val heightLessThanMinHeight = isHeightLessThanMinHeight(
+                targetHeight = nextHeight,
+                minHeight = minSize.height
+            )
             val applyNewHeight = !heightBiggerThanAllowedHeight && !heightLessThanMinHeight
             appliedHeight = when {
-                heightBiggerThanAllowedHeight -> gridAllowedArea.height - topLeft_.y
+                heightBiggerThanAllowedHeight -> gridAllowedArea.height - this.topLeft.y
                 heightLessThanMinHeight -> minSize.height
                 else -> nextHeight
             }
@@ -315,8 +325,15 @@ class CropState(
 
             appliedWidth = appliedHeight * targetRatio
 
-            val widthBiggerThanAllowedWidth = isWidthBiggerThanAllowedWidth(appliedWidth)
-            val widthLessThanMinWidth = isWidthLessThanMinWidth(targetWidth = appliedWidth)
+            val widthBiggerThanAllowedWidth = isWidthBiggerThanAllowedWidth(
+                targetWidth = appliedWidth,
+                allowedWidth = gridAllowedArea.width,
+                leftX = this.topLeft.x
+            )
+            val widthLessThanMinWidth = isWidthLessThanMinWidth(
+                targetWidth = appliedWidth,
+                minWidth = minSize.width
+            )
             val applyNewWidth = !widthBiggerThanAllowedWidth && !widthLessThanMinWidth
 
             if (applyNewWidth) {
@@ -324,7 +341,7 @@ class CropState(
             }
 
             appliedWidth = when {
-                widthBiggerThanAllowedWidth -> gridAllowedArea.width - topLeft_.x
+                widthBiggerThanAllowedWidth -> gridAllowedArea.width - this.topLeft.x
                 else -> minSize.width
             }
 
@@ -332,76 +349,18 @@ class CropState(
 
         _size.value = Size(appliedWidth, appliedHeight)
     }
-
-    private fun isWidthBiggerThanAllowedWidth(targetWidth: Float): Boolean {
-        return targetWidth + topLeft_.x > gridAllowedArea.width
-    }
-
-    private fun isWidthLessThanMinWidth(targetWidth: Float): Boolean {
-        return targetWidth < minSize.width
-    }
-
-    //isHeightBiggerThanAllowedHeight
-    private fun isHeightBiggerThanAllowedHeight(targetHeight: Float): Boolean {
-        return targetHeight + topLeft_.y > gridAllowedArea.height
-    }
-
-    private fun isHeightLessThanMinHeight(targetHeight: Float): Boolean {
-        return targetHeight < minSize.height
-    }
 }
 
 @Composable
-fun rememberCropState(
+fun rememberGridCropState(
     size: Size = Size.Zero,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     minSize: Size = Size(100.dp.toPx(), 100.dp.toPx()),
 ) = remember(size) {
-    CropState(
+    GridCropState(
         topLeft = Offset.Zero,
         size = size,
         coroutineScope = coroutineScope,
         minSize = minSize
     )
-}
-
-
-private fun boundedNewX(
-    topLeft: Offset,
-    dragAmount: Offset,
-    size: Size,
-    maxWidthPx: Float,
-) = when {
-    topLeft.x + dragAmount.x < 0 -> 0f
-    topLeft.x + size.width + dragAmount.x > maxWidthPx -> maxWidthPx - size.width
-    else -> topLeft.x + dragAmount.x
-}
-
-private fun boundedNewY(
-    topLeft: Offset,
-    dragAmount: Offset,
-    size: Size,
-    maxHeightPx: Float,
-) = when {
-    topLeft.y + dragAmount.y < 0 -> 0f
-    topLeft.y + size.height + dragAmount.y > maxHeightPx -> maxHeightPx - size.height
-    else -> topLeft.y + dragAmount.y
-}
-
-private fun boundedWidth(
-    newWidth: Float,
-    maxWidthPx: Float,
-) = when {
-    newWidth < 0 -> 0f
-    newWidth > maxWidthPx -> maxWidthPx
-    else -> newWidth
-}
-
-private fun boundedHeight(
-    newHeight: Float,
-    maxHeightPx: Float,
-) = when {
-    newHeight < 0 -> 0f
-    newHeight > maxHeightPx -> maxHeightPx
-    else -> newHeight
 }
