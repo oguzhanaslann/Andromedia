@@ -1,7 +1,6 @@
 package com.example.andromedia.ui.imageEdit
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -397,8 +396,8 @@ private fun DoneButton(
     IconButton(
         onClick = {
             imageEditViewModel.applyChanges(
-                cropTopLeft = cropState.topLeft.x to cropState.topLeft.y,
-                cropSize = cropState.size.width to cropState.size.height,
+                cropTopLeft = cropState.topLeft_.x to cropState.topLeft_.y,
+                cropSize = cropState.size_.width to cropState.size_.height,
             )
         }) {
         Icon(

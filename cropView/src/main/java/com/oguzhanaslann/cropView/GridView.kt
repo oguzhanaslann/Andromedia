@@ -1,5 +1,6 @@
 package com.oguzhanaslann.cropView
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,15 +12,42 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.oguzhanaslann.cropView.util.cropped
+
+interface CropShapeState {
+    fun resize(
+        change: PointerInputChange,
+        dragAmount: Offset,
+        maxSize: Size,
+    ): PointerInputScope.() -> Unit
+
+    fun crop(bitmap: Bitmap): Bitmap
+
+}
+
+interface RectangleCropShapeState : CropShapeState {
+    val topLeft: Offset
+    val size: Size
+
+    override fun crop(bitmap: Bitmap): Bitmap {
+        return bitmap.cropped(
+            topLeftX = topLeft.x,
+            topLeftY = topLeft.y,
+            width = size.width,
+            height = size.height
+        )
+    }
+}
 
 @Composable
 internal fun GridView(
-    cropState: CropState,
-    maxWidthPx: Float,
-    maxHeightPx: Float,
+    cropState: RectangleCropShapeState,
+    maxSize: Size,
     lineWidth: Dp = 2.dp,
     onDrawGrid: DrawScope.() -> Unit = {},
 ) {
@@ -35,154 +63,9 @@ internal fun GridView(
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
-                    val xDp = change.position.x.toDp()
-                    val yDp = change.position.y.toDp()
-                    when {
-                        isTopLeftCorner(xDp, yDp, cropState.topLeft) -> {
-                            cropState.setTopLeft(
-                                x = boundedNewX(
-                                    topLeft = cropState.topLeft,
-                                    dragAmount = dragAmount,
-                                    size = cropState.size,
-                                    maxWidthPx = maxWidthPx
-                                ),
-                                y = boundedNewY(
-                                    topLeft = cropState.topLeft,
-                                    dragAmount = dragAmount,
-                                    size = cropState.size,
-                                    maxHeightPx = maxHeightPx
-                                )
-                            )
-
-                            cropState.setSize(
-                                width = boundedWidth(
-                                    cropState.size.width - dragAmount.x,
-                                    maxWidthPx
-                                ),
-                                height = boundedHeight(
-                                    cropState.size.height - dragAmount.y,
-                                    maxHeightPx
-                                )
-                            )
-                        }
-
-                        isTopRightCorner(xDp, yDp, cropState.topLeft, cropState.size) -> {
-
-                            cropState.setTopLeft(
-                                x = cropState.topLeft.x,
-                                y = boundedNewY(
-                                    topLeft = cropState.topLeft,
-                                    dragAmount = dragAmount,
-                                    size = cropState.size,
-                                    maxHeightPx = maxHeightPx
-                                )
-                            )
-
-                            cropState.setSize(
-                                width = boundedWidth(
-                                    cropState.size.width + dragAmount.x,
-                                    maxWidthPx
-                                ),
-                                height = boundedHeight(
-                                    cropState.size.height - dragAmount.y,
-                                    maxHeightPx
-                                )
-                            )
-                        }
-
-                        isBottomLeftCorner(xDp, yDp, cropState.topLeft, cropState.size) -> {
-                            cropState.setTopLeft(
-                                x = boundedNewX(
-                                    topLeft = cropState.topLeft,
-                                    dragAmount = dragAmount,
-                                    size = cropState.size,
-                                    maxWidthPx = maxWidthPx
-                                ),
-                                y = cropState.topLeft.y
-                            )
-
-                            cropState.setSize(
-                                width = boundedWidth(
-                                    cropState.size.width - dragAmount.x,
-                                    maxWidthPx
-                                ),
-                                height = boundedHeight(
-                                    cropState.size.height + dragAmount.y,
-                                    maxHeightPx
-                                )
-                            )
-                        }
-
-                        isBottomRightCorner(
-                            xDp,
-                            yDp,
-                            cropState.topLeft,
-                            cropState.size
-                        ) -> {
-                            cropState.setSize(
-                                width = boundedWidth(
-                                    cropState.size.width + dragAmount.x,
-                                    maxWidthPx
-                                ),
-                                height = boundedHeight(
-                                    cropState.size.height + dragAmount.y,
-                                    maxHeightPx
-                                )
-                            )
-                        }
-
-                        isMiddle(xDp, yDp, cropState.topLeft, cropState.size) -> {
-                            val newX = boundedNewX(
-                                cropState.topLeft,
-                                dragAmount,
-                                cropState.size,
-                                maxWidthPx
-                            )
-                            val newY = boundedNewY(
-                                cropState.topLeft,
-                                dragAmount,
-                                cropState.size,
-                                maxHeightPx
-                            )
-
-                            cropState.setTopLeft(
-                                x = newX,
-                                y = newY
-                            )
-                        }
-
-                        isLeftEdge(xDp, yDp, cropState.topLeft, cropState.size) -> {
-                            cropState.setTopLeft(
-                                x = boundedNewX(
-                                    topLeft = cropState.topLeft,
-                                    dragAmount = dragAmount,
-                                    size = cropState.size,
-                                    maxWidthPx = maxWidthPx
-                                ),
-                                y = cropState.topLeft.y
-                            )
-
-                            cropState.setSize(
-                                width = boundedWidth(
-                                    cropState.size.width - dragAmount.x,
-                                    maxWidthPx
-                                ),
-                                height = cropState.size.height
-                            )
-                        }
-
-                        isRightEdge(xDp, yDp, cropState.topLeft, cropState.size) -> {
-                            cropState.setSize(
-                                width = boundedWidth(
-                                    cropState.size.width + dragAmount.x,
-                                    maxWidthPx
-                                ),
-                                height = cropState.size.height
-                            )
-                        }
-
-                        else -> Unit
-                    }
+                    cropState
+                        .resize(change, dragAmount, maxSize)
+                        .invoke(this)
                 }
             }
     ) {
@@ -249,45 +132,4 @@ internal fun GridView(
 
         onDrawGrid()
     }
-}
-
-
-private fun boundedNewX(
-    topLeft: Offset,
-    dragAmount: Offset,
-    size: Size,
-    maxWidthPx: Float,
-) = when {
-    topLeft.x + dragAmount.x < 0 -> 0f
-    topLeft.x + size.width + dragAmount.x > maxWidthPx -> maxWidthPx - size.width
-    else -> topLeft.x + dragAmount.x
-}
-
-private fun boundedNewY(
-    topLeft: Offset,
-    dragAmount: Offset,
-    size: Size,
-    maxHeightPx: Float,
-) = when {
-    topLeft.y + dragAmount.y < 0 -> 0f
-    topLeft.y + size.height + dragAmount.y > maxHeightPx -> maxHeightPx - size.height
-    else -> topLeft.y + dragAmount.y
-}
-
-private fun boundedWidth(
-    newWidth: Float,
-    maxWidthPx: Float,
-) = when {
-    newWidth < 0 -> 0f
-    newWidth > maxWidthPx -> maxWidthPx
-    else -> newWidth
-}
-
-private fun boundedHeight(
-    newHeight: Float,
-    maxHeightPx: Float,
-) = when {
-    newHeight < 0 -> 0f
-    newHeight > maxHeightPx -> maxHeightPx
-    else -> newHeight
 }

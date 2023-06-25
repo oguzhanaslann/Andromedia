@@ -31,11 +31,11 @@ fun Crop(
 
         LaunchedEffect(maxWidthPx, maxHeightPx) {
             when {
-                cropState.size == Size.Zero -> {
+                cropState.size_ == Size.Zero -> {
                     cropState.setSize(maxWidthPx, maxHeightPx)
                 }
 
-                cropState.size.width > maxWidthPx || cropState.size.height > maxHeightPx -> {
+                cropState.size_.width > maxWidthPx || cropState.size_.height > maxHeightPx -> {
                     cropState.setSize(maxWidthPx, maxHeightPx)
                 }
             }
@@ -55,8 +55,10 @@ fun Crop(
         ) {
             GridView(
                 cropState,
-                maxWidthPx,
-                maxHeightPx,
+                maxSize = Size(
+                    width = maxWidthPx,
+                    height = maxHeightPx
+                ),
                 onDrawGrid = {
                     cropState.setGridAllowedArea(
                         width = size.width,
