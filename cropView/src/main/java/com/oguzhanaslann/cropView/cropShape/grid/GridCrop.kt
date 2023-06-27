@@ -3,8 +3,6 @@ package com.oguzhanaslann.cropView.cropShape.grid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Size
-import com.oguzhanaslann.cropView.GridView
-import com.oguzhanaslann.cropView.Ratio
 import com.oguzhanaslann.cropView.cropShape.CropShape
 import com.oguzhanaslann.cropView.cropShape.cropState.CropState
 

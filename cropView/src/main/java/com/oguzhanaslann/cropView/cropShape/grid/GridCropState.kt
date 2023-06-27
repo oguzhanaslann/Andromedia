@@ -12,7 +12,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.unit.dp
-import com.oguzhanaslann.cropView.Ratio
 import com.oguzhanaslann.cropView.cropShape.cropState.RectangleCropShapeState
 import com.oguzhanaslann.cropView.isBottomLeftCorner
 import com.oguzhanaslann.cropView.isBottomRightCorner

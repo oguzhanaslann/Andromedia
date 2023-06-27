@@ -10,6 +10,8 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.unit.dp
 import com.oguzhanaslann.cropView.cropShape.cropState.CircularCropShapeState
+import com.oguzhanaslann.cropView.isCenter
+import com.oguzhanaslann.cropView.isInCircle
 import com.oguzhanaslann.cropView.util.boundedNewXCircular
 import com.oguzhanaslann.cropView.util.boundedNewYCircular
 import com.oguzhanaslann.cropView.util.boundedRadius
@@ -77,29 +79,6 @@ class CircularCropState(
         val minEdge = width.coerceAtMost(height)
         _radius.value = minEdge / 2
     }
-}
-
-private fun PointerInputScope.isCenter(
-    position: Offset,
-    center: Offset,
-): Boolean {
-    // if the distance between the center and the position is less than 48dp
-    // then it is considered as the center
-    return position distanceTo center < 48.dp.toPx()
-}
-
-infix fun Offset.distanceTo(other: Offset): Float {
-    val dx = kotlin.math.abs(this.x - other.x)
-    val dy = kotlin.math.abs(this.y - other.y)
-    return kotlin.math.sqrt((dx * dx) + (dy * dy))
-}
-
-private fun PointerInputScope.isInCircle(
-    position: Offset,
-    center: Offset,
-    radius: Float,
-): Boolean {
-    return position distanceTo center < radius
 }
 
 

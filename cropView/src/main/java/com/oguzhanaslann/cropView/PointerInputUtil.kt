@@ -77,3 +77,27 @@ internal fun PointerInputScope.isRightEdge(
     return xDp in topLeft.x.toDp() + size.width.toDp() - touchSlop..topLeft.x.toDp() + size.width.toDp() + touchSlop
             && yDp in topLeft.y.toDp() + touchSlop..topLeft.y.toDp() + size.height.toDp() - touchSlop
 }
+
+internal fun PointerInputScope.isCenter(
+    position: Offset,
+    center: Offset,
+): Boolean {
+    // if the distance between the center and the position is less than 48dp
+    // then it is considered as the center
+    return position distanceTo center < 48.dp.toPx()
+}
+
+internal infix fun Offset.distanceTo(other: Offset): Float {
+    val dx = kotlin.math.abs(this.x - other.x)
+    val dy = kotlin.math.abs(this.y - other.y)
+    return kotlin.math.sqrt((dx * dx) + (dy * dy))
+}
+
+internal fun PointerInputScope.isInCircle(
+    position: Offset,
+    center: Offset,
+    radius: Float,
+): Boolean {
+    return position distanceTo center < radius
+}
+

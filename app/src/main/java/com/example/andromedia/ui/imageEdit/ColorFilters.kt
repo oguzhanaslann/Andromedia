@@ -1,14 +1,13 @@
 package com.example.andromedia.ui.imageEdit
 
-import androidx.compose.ui.graphics.ColorMatrix
-import com.oguzhanaslann.cropView.util.blue
-import com.oguzhanaslann.cropView.util.gold
-import com.oguzhanaslann.cropView.util.gray
-import com.oguzhanaslann.cropView.util.green
-import com.oguzhanaslann.cropView.util.none
-import com.oguzhanaslann.cropView.util.pink
-import com.oguzhanaslann.cropView.util.sepia
-import com.oguzhanaslann.cropView.util.yellow
+import com.example.andromedia.ui.blue
+import com.example.andromedia.ui.gold
+import com.example.andromedia.ui.gray
+import com.example.andromedia.ui.green
+import com.example.andromedia.ui.none
+import com.example.andromedia.ui.pink
+import com.example.andromedia.ui.sepia
+import com.example.andromedia.ui.yellow
 
 val grayFilter = ColorFilterModel(
     name = "Gray",

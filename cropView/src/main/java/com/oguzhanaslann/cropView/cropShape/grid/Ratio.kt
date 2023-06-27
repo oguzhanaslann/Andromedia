@@ -1,4 +1,4 @@
-package com.oguzhanaslann.cropView
+package com.oguzhanaslann.cropView.cropShape.grid
 
 @JvmInline
 value class Ratio private constructor(

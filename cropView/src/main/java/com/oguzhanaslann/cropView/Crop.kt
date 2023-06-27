@@ -28,7 +28,7 @@ fun Crop(
     drawGrid: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val gridCropState = cropShape.state
+    val cropState = cropShape.state
 
     BoxWithConstraints(modifier = modifier) {
         val maxWidthPx = maxWidth.toPx()
@@ -36,12 +36,12 @@ fun Crop(
 
         LaunchedEffect(maxWidthPx, maxHeightPx) {
             when {
-                gridCropState.size == Size.Zero -> {
-                    gridCropState.setSize(maxWidthPx, maxHeightPx)
+                cropState.size == Size.Zero -> {
+                    cropState.setSize(maxWidthPx, maxHeightPx)
                 }
 
-                gridCropState.size.width > maxWidthPx || gridCropState.size.height > maxHeightPx -> {
-                    gridCropState.setSize(maxWidthPx, maxHeightPx)
+                cropState.size.width > maxWidthPx || cropState.size.height > maxHeightPx -> {
+                    cropState.setSize(maxWidthPx, maxHeightPx)
                 }
             }
         }

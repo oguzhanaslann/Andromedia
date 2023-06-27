@@ -1,4 +1,4 @@
-package com.oguzhanaslann.cropView
+package com.oguzhanaslann.cropView.cropShape.grid
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
