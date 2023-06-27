@@ -15,7 +15,18 @@ internal fun boundedNewX(
     else -> topLeft.x + dragAmount.x
 }
 
-internal  fun boundedNewY(
+internal fun boundedNewXCircular(
+    center: Offset,
+    dragAmount: Offset,
+    radius: Float,
+    maxWidthPx: Float,
+) = when {
+    center.x + dragAmount.x - radius < 0 -> radius
+    center.x + radius + dragAmount.x > maxWidthPx -> maxWidthPx - radius
+    else -> center.x + dragAmount.x
+}
+
+internal fun boundedNewY(
     topLeft: Offset,
     dragAmount: Offset,
     size: Size,
@@ -26,7 +37,18 @@ internal  fun boundedNewY(
     else -> topLeft.y + dragAmount.y
 }
 
-internal  fun boundedWidth(
+internal fun boundedNewYCircular(
+    center: Offset,
+    dragAmount: Offset,
+    radius: Float,
+    maxHeightPx: Float,
+) = when {
+    center.y + dragAmount.y - radius < 0 -> radius
+    center.y + radius + dragAmount.y > maxHeightPx -> maxHeightPx - radius
+    else -> center.y + dragAmount.y
+}
+
+internal fun boundedWidth(
     newWidth: Float,
     maxWidthPx: Float,
 ) = when {
@@ -44,17 +66,37 @@ internal fun boundedHeight(
     else -> newHeight
 }
 
+// bounded radius
+internal fun boundedRadius(
+    center: Offset,
+    radius: Float,
+    maxWidthPx: Float,
+    maxHeightPx: Float,
+    dragAmount: Offset,
+    minWidth: Float,
+): Float {
+    val newRadius = radius + dragAmount.x
+    return when {
+        newRadius + center.x > maxWidthPx -> maxWidthPx - center.x
+        newRadius + center.y > maxHeightPx -> maxHeightPx - center.y
+        newRadius < minWidth -> minWidth
+        center.y - newRadius < 0 -> center.y
+        center.x - newRadius < 0 -> center.x
+        else -> newRadius
+    }
+}
+
 internal fun isWidthBiggerThanAllowedWidth(
     targetWidth: Float,
     allowedWidth: Float,
-    leftX : Float
+    leftX: Float,
 ): Boolean {
     return targetWidth + leftX > allowedWidth
 }
 
 internal fun isWidthLessThanMinWidth(
     targetWidth: Float,
-    minWidth: Float
+    minWidth: Float,
 ): Boolean {
     return targetWidth < minWidth
 }
@@ -62,14 +104,14 @@ internal fun isWidthLessThanMinWidth(
 internal fun isHeightBiggerThanAllowedHeight(
     targetHeight: Float,
     allowedHeight: Float,
-    topY : Float
+    topY: Float,
 ): Boolean {
     return targetHeight + topY > allowedHeight
 }
 
 internal fun isHeightLessThanMinHeight(
     targetHeight: Float,
-    minHeight: Float
+    minHeight: Float,
 ): Boolean {
     return targetHeight < minHeight
 }

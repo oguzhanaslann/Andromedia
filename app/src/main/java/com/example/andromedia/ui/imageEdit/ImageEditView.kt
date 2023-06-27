@@ -29,7 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -50,8 +50,9 @@ import com.example.andromedia.ui.theme.AndromediaTheme
 import com.oguzhanaslann.cropView.Crop
 import com.oguzhanaslann.cropView.Ratio
 import com.oguzhanaslann.cropView.cropShape.CropShape
+import com.oguzhanaslann.cropView.cropShape.circle.rememberCircularCrop
+import com.oguzhanaslann.cropView.cropShape.circle.rememberCircularCropState
 import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCrop
-import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCropState
 import com.oguzhanaslann.cropView.toPx
 import com.oguzhanaslann.cropView.util.brightnessApplied
 import com.oguzhanaslann.cropView.util.contractionApplied
@@ -88,9 +89,19 @@ fun ImageEditView(
     val editPanelOpen by remember(editPanel) { derivedStateOf { editPanel != null } }
 
 
-    val cropState = rememberGridCrop(
-        rememberGridCropState(
-            size = Size(200.dp.toPx(), 200.dp.toPx()),
+//    val cropState = rememberGridCrop(
+//        rememberGridCropState(
+//            size = Size(200.dp.toPx(), 200.dp.toPx()),
+//        )
+//    )
+
+    val cropState = rememberCircularCrop(
+        rememberCircularCropState(
+            center = Offset(
+                64.dp.toPx(),
+                64.dp.toPx()
+            ),
+            radius = 64.dp.toPx(),
         )
     )
 
@@ -267,7 +278,7 @@ fun ImageEditView(
                                     AdjustedImageView(photoUri!!, it, imageEditViewModel::setFilter)
                                 }
                             }
-
+/*
                             EditPanel.CROP -> {
                                 Row(
                                     Modifier
@@ -365,8 +376,9 @@ fun ImageEditView(
                                     }
                                 }
                             }
-
+*/
                             null -> Unit
+                            else -> Unit
                         }
                     }
                 }
