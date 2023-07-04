@@ -12,10 +12,12 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -53,6 +56,8 @@ import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCrop
 import com.oguzhanaslann.cropView.toPx
 import com.example.andromedia.ui.brightnessApplied
 import com.example.andromedia.ui.contractionApplied
+import com.oguzhanaslann.cropView.cropShape.grid.Ratio
+import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCropState
 
 val brightnessRange = -180f..180f
 val contrastRange = 0f..10f
@@ -86,19 +91,9 @@ fun ImageEditView(
     val editPanelOpen by remember(editPanel) { derivedStateOf { editPanel != null } }
 
 
-//    val cropState = rememberGridCrop(
-//        rememberGridCropState(
-//            size = Size(200.dp.toPx(), 200.dp.toPx()),
-//        )
-//    )
-
-    val cropState = rememberCircularCrop(
-        rememberCircularCropState(
-            center = Offset(
-                64.dp.toPx(),
-                64.dp.toPx()
-            ),
-            radius = 64.dp.toPx(),
+    val cropState = rememberGridCrop(
+        rememberGridCropState(
+            size = Size(200.dp.toPx(), 200.dp.toPx()),
         )
     )
 
@@ -275,7 +270,7 @@ fun ImageEditView(
                                     AdjustedImageView(photoUri!!, it, imageEditViewModel::setFilter)
                                 }
                             }
-/*
+
                             EditPanel.CROP -> {
                                 Row(
                                     Modifier
@@ -373,7 +368,7 @@ fun ImageEditView(
                                     }
                                 }
                             }
-*/
+
                             null -> Unit
                             else -> Unit
                         }
