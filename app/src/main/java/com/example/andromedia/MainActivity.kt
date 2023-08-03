@@ -31,9 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.andromedia.ui.imageEdit.ImageEditView
+//import com.example.andromedia.ui.imageEdit.ImageEditView
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.colorPallette.ColorPaletteView
+import com.example.andromedia.ui.imageEdit.ImageEditView
 import com.example.andromedia.ui.theme.AndromediaTheme
 
 const val Crop = 0
@@ -77,7 +78,7 @@ private val pages = listOf(
     Page(
         route = "imageEdit",
         title = "image edit",
-        content = { ImageEditView() }
+        content = { /*ImageEditView() */}
     ),
 
     // color pallette api

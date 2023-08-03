@@ -8,10 +8,12 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        maven { url 'https://www.jitpack.io' }
         google()
         mavenCentral()
+
     }
 }
 rootProject.name = "Andromedia"
 include ':app'
-include ':cropView'
+

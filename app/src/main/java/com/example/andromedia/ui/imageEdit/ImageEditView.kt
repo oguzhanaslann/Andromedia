@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -47,17 +46,15 @@ import coil.compose.AsyncImagePainter
 import com.example.andromedia.R
 import com.example.andromedia.ui.SelectImageView
 import com.example.andromedia.ui.ShapeableImage
-import com.example.andromedia.ui.theme.AndromediaTheme
-import com.oguzhanaslann.cropView.Crop
-import com.oguzhanaslann.cropView.cropShape.CropShape
-import com.oguzhanaslann.cropView.cropShape.circle.rememberCircularCrop
-import com.oguzhanaslann.cropView.cropShape.circle.rememberCircularCropState
-import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCrop
-import com.oguzhanaslann.cropView.toPx
 import com.example.andromedia.ui.brightnessApplied
 import com.example.andromedia.ui.contractionApplied
-import com.oguzhanaslann.cropView.cropShape.grid.Ratio
-import com.oguzhanaslann.cropView.cropShape.grid.rememberGridCropState
+import com.example.andromedia.ui.theme.AndromediaTheme
+import com.oguzhanaslann.compose.cropview.Crop
+import com.oguzhanaslann.compose.cropview.cropShape.CropShape
+import com.oguzhanaslann.compose.cropview.cropShape.grid.Ratio
+import com.oguzhanaslann.compose.cropview.cropShape.grid.rememberGridCrop
+import com.oguzhanaslann.compose.cropview.cropShape.grid.rememberGridCropState
+import com.oguzhanaslann.compose.cropview.util.toPx
 
 val brightnessRange = -180f..180f
 val contrastRange = 0f..10f
@@ -85,6 +82,7 @@ fun ImageEditView(
     val animatedRotation by animateFloatAsState(
         targetValue = rotation,
         animationSpec = spring(stiffness = 100f),
+        label = "",
     )
 
     var editPanel by remember { mutableStateOf<EditPanel?>(null) }
@@ -238,6 +236,7 @@ fun ImageEditView(
                     AnimatedContent(
                         modifier = Modifier.heightIn(96.dp),
                         targetState = editPanel,
+                        label = "",
                     ) { panel ->
                         when (editPanel) {
                             EditPanel.ADJUST -> AdjustImageSettingsView(
@@ -511,7 +510,7 @@ fun ImageOnEditView(
 
     Crop(
         modifier = modifier,
-        drawGrid = crop,
+        draw = crop,
         cropShape = cropShape
     ) {
         AsyncImage(

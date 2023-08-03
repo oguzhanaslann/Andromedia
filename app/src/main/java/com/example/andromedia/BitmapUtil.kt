@@ -1,4 +1,4 @@
-package com.oguzhanaslann.cropView.util
+package com.example.andromedia
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -9,31 +9,10 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import androidx.compose.ui.graphics.ColorMatrix
 
-
 fun Bitmap.rotate(angle: Float): Bitmap {
     val matrix = android.graphics.Matrix()
     matrix.postRotate(angle)
     return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
-}
-
-fun Bitmap.cropped(topLeftX: Float, topLeftY: Float, width: Float, height: Float): Bitmap {
-    var width = width
-    if (topLeftX + width > this.width) {
-        width = this.width - topLeftX
-    }
-
-    var height = height
-    if (topLeftY + height > this.height) {
-        height = this.height - topLeftY
-    }
-
-    return Bitmap.createBitmap(
-        this,
-        topLeftX.toInt(),
-        topLeftY.toInt(),
-        width.toInt(),
-        height.toInt()
-    )
 }
 
 fun Bitmap.blur(radius: Float): Bitmap {
@@ -105,33 +84,4 @@ fun Bitmap.filtered(
     canvas.drawBitmap(targetBmp, 0f, 0f, paint)
 
     return targetBmp
-}
-
-fun Bitmap.circularCropped(
-    centerX: Float,
-    centerY: Float,
-    radius: Float,
-): Bitmap {
-    val bitmap = this.copy(Bitmap.Config.ARGB_8888, true)
-    val output = Bitmap.createBitmap(
-        bitmap.width,
-        bitmap.height, Bitmap.Config.ARGB_8888
-    )
-    val canvas = Canvas(output)
-    val color = -0xbdbdbe
-    val paint = Paint()
-    val rect = Rect(0, 0, bitmap.width, bitmap.height)
-    paint.isAntiAlias = true
-    canvas.drawARGB(0, 0, 0, 0)
-    paint.color = color
-    canvas.drawCircle(
-        centerX,
-        centerY,
-        radius,
-        paint
-    )
-    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-    canvas.drawBitmap(bitmap, rect, rect, paint)
-    return output
-
 }
