@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.andromedia.ui.ShapeableImage
 import com.example.andromedia.ui.colorPallette.ColorPaletteView
 import com.example.andromedia.ui.imageEdit.ImageEditView
+import com.example.andromedia.ui.record.AudioRecorderView
 import com.example.andromedia.ui.theme.AndromediaTheme
 
 const val Crop = 0
@@ -86,9 +87,14 @@ private val pages = listOf(
         route = "colorPallette",
         title = "color pallette",
         content = { ColorPaletteView() }
+    ),
+
+    // audio recorder
+    Page(
+        route = "audioRecorder",
+        title = "audio recorder",
+        content = { /*AudioRecorderView()*/ }
     )
-
-
 )
 
 @Composable
@@ -120,6 +126,10 @@ private fun MainView(pages: List<Page>) {
 
         composable("colorPallette") {
             ColorPaletteView()
+        }
+
+        composable("audioRecorder") {
+            AudioRecorderView()
         }
     }
 }
