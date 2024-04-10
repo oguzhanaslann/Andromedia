@@ -33,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 //import com.example.andromedia.ui.imageEdit.ImageEditView
 import com.example.andromedia.ui.ShapeableImage
+import com.example.andromedia.ui.ambientColor.AmbientColorView
 import com.example.andromedia.ui.colorPallette.ColorPaletteView
 import com.example.andromedia.ui.imageEdit.ImageEditView
 import com.example.andromedia.ui.record.AudioRecorderView
@@ -94,6 +95,12 @@ private val pages = listOf(
         route = "audioRecorder",
         title = "audio recorder",
         content = { /*AudioRecorderView()*/ }
+    ),
+
+    Page(
+        route = "ambientColor",
+        title = "ambient color",
+        content = { AmbientColorView() }
     )
 )
 
@@ -130,6 +137,10 @@ private fun MainView(pages: List<Page>) {
 
         composable("audioRecorder") {
             AudioRecorderView()
+        }
+
+        composable("ambientColor") {
+            AmbientColorView()
         }
     }
 }
